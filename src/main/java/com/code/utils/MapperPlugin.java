@@ -288,7 +288,7 @@ public class MapperPlugin extends PluginAdapter {
     	enumeration.addField(field);
     	
     	//构造器
-    	Method cons=new Method(shortName);
+    	Method cons=new Method(shortName+"Enum");
     	cons.setConstructor(true);
     	cons.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "value"));
     	cons.addBodyLine("this.value=value;");
