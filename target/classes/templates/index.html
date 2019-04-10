@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+ <script th:src="@{/webjars/jquery/3.3.1-1/jquery.js}" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript" th:replace="common/core::core"></script>
+ <script type="text/javascript">
+ 	$(document).ready(function(){
+ 		$.get(ctxPath+"getProperties",null,function(data){
+ 			initValue(data);
+ 		});
+ 		//提交
+ 		$("#btn01").click(function(){
+ 			submit();		
+ 		});
+ 	});
+ 	//加载值
+ 	function initValue(data){
+ 		try{
+ 			$("#copyPath").val(data["copyPath"]);
+			$("#jdbcUrl").val(data["jdbc.url"]);
+			$("#jdbcUsername").val(data["jdbc.userId"]);
+			$("#jdbcPassword").val(data["jdbc.password"]);
+			$("#pluginPackageName").val(data["plugin.packageName"]);
+			$("#commentGeneratorPackage").val(data["commentGenerator.Package"]);
+			$("#targetProject").val(data["targetProject"]);
+			$("#pojoTargetPackage").val(data["pojo.targetPackage"]);
+			$("#pojoTrimStrings").val(data["pojo.trimStrings"]);
+			$("#pojoRootClass").val(data["pojo.rootClass"]);
+			$("#pojoRootClassColumns").val(data["pojo.rootClass.columns"]);
+			$("#pojoenumPojoEnumPageName").val(data["pojoenum.pojoEnumPageName"]);
+			$("#extendMapperPackageName").val(data["mapper.extendMapperPackageName"]);
+			$("#xmlTargetPackage").val(data["xml.targetPackage"]);
+			$("#exampleBaseExampleClass").val(data["example.baseExampleClass"]);
+			$("#mapperTargetPackage").val(data["mapper.targetPackage"]);
+			$("#table").val(data["table"]);
+			$("#copyrightDesc").val(data["copyright.desc"]);
+ 		}catch(e){
+ 			console.log(e);
+ 		}
+ 	}
+ 	function submit(){
+ 		var fd=new FormData(document.querySelector("form"));
+ 		$.ajax({
+ 			  url: ctxPath+"generate",
+ 			  type: "POST",
+ 			  data: fd,
+ 			  processData: false,  // 不处理数据
+ 			  contentType: false ,  // 不设置内容类型
+ 			  success:function(data){
+ 				 alert(data.msg);
+ 			  }
+ 			});
+ 	}
+ </script>
+</head>
+<body>
+
+
+<div style="width: 100%; margin:0 auto;" >
+<form id="myform" >
+
+
+ <table style="text-align: center;margin:0 auto;">
+ 	<tr>
+ 		<td>临时文件生成目录：</td>
+ 		<td><textarea type="text" rows="1" cols="50" name="copyPath" id="copyPath" readonly="readonly" maxlength="100"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>jdbc.url：</td>
+ 		<td><textarea type="text" rows="1" cols="50" name="jdbcUrl" id="jdbcUrl"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>jdbc.username：</td>
+ 		<td><textarea type="text" rows="1" cols="50" name="jdbcUsername" id="jdbcUsername"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>jdbc.password：</td>
+ 		<td><textarea type="text" rows="1" cols="50" name="jdbcPassword" id="jdbcPassword"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>插件类所在包：</td>
+ 		<td><textarea type="text" rows="1" cols="50" readonly="readonly" name="pluginPackageName" id="pluginPackageName"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>代码注释辅助类所在包名：</td>
+ 		<td><textarea type="text" rows="1" cols="50" name="commentGeneratorPackage" readonly="readonly" id="commentGeneratorPackage"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>代码生成指向目录：</td>
+ 		<td><textarea type="text" rows="1" cols="50" name="targetProject" id="targetProject"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>pojo生成包名：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="pojoTargetPackage" id="pojoTargetPackage"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>pojo是否使用tirm：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="pojoTrimStrings" id="pojoTrimStrings"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>pojo父类所在包名(生成的pojo继承父类)：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="pojoRootClass" id="pojoRootClass"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>父类属性对应的字段：</td>
+ 		<td><textarea type="text" rows="3" cols="50" name="pojoRootClassColumns" id="pojoRootClassColumns"></textarea></td>
+ 	</tr>
+ 	
+ 	<tr>
+ 		<td>枚举类生成路径：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="pojoenumPojoEnumPageName" id="pojoenumPojoEnumPageName"></textarea></td>
+ 	</tr>
+ 	
+ 	<tr>
+ 		<td>example 查询父类所在包名：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="exampleBaseExampleClass" id="exampleBaseExampleClass"></td>
+ 	</tr>
+ 	<tr>
+ 		<td>mapper   xml生成包路径：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="xmlTargetPackage" id="xmlTargetPackage"></textarea></td>
+ 	</tr>
+ 	
+ 	<tr>
+ 		<td>mapper interface 接口生成包路径：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="mapperTargetPackage" id="mapperTargetPackage"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>所有mapper接口都需要继承的父类包：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="extendMapperPackageName" id="extendMapperPackageName"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>table要生成代码的表：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="table" id="table"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>版权声明（生成代码时附带版权信息）：</td>
+ 		<td><textarea type="text" rows="2" cols="50" name="copyrightDesc" id="copyrightDesc" maxlength="100"></textarea></td>
+ 	</tr>
+ 	<tr style="text-align: center;">
+ 		<td colspan="2">
+ 			<input style="" id="btn01" type="button" value="生成代码">
+ 		</td>
+ 	</tr>
+ </table>
+
+</form>
+
+</div>
+
+ 
+
+
+
+</body>
+</html>

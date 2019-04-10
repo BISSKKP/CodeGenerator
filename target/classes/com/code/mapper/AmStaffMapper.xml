@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.code.mapper.AmStaffMapper" >
+  <resultMap id="BaseResultMap" type="com.code.pojo.AmStaff" >
+    <result column="id" property="id" jdbcType="VARCHAR" />
+    <result column="first_name" property="firstName" jdbcType="VARCHAR" />
+    <result column="last_name" property="lastName" jdbcType="VARCHAR" />
+    <result column="english_name" property="englishName" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="business_no" property="businessNo" jdbcType="VARCHAR" />
+    <result column="job_title" property="jobTitle" jdbcType="INTEGER" />
+    <result column="employment_date" property="employmentDate" jdbcType="DATE" />
+    <result column="resignation_date" property="resignationDate" jdbcType="DATE" />
+    <result column="skype" property="skype" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="INTEGER" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="update_date" property="updateDate" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+    <result column="del_flag" property="delFlag" jdbcType="CHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, first_name, last_name, english_name, email, business_no, job_title, employment_date, 
+    resignation_date, skype, gender, tel, create_date, create_by, update_date, update_by, 
+    del_flag
+  </sql>
+  <insert id="insert" parameterType="com.code.pojo.AmStaff" >
+    insert into am_staff (id, first_name, last_name, 
+      english_name, email, business_no, 
+      job_title, employment_date, resignation_date, 
+      skype, gender, tel, 
+      create_date, create_by, update_date, 
+      update_by, del_flag)
+    values (#{id,jdbcType=VARCHAR}, #{firstName,jdbcType=VARCHAR}, #{lastName,jdbcType=VARCHAR}, 
+      #{englishName,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{businessNo,jdbcType=VARCHAR}, 
+      #{jobTitle,jdbcType=INTEGER}, #{employmentDate,jdbcType=DATE}, #{resignationDate,jdbcType=DATE}, 
+      #{skype,jdbcType=VARCHAR}, #{gender,jdbcType=INTEGER}, #{tel,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, #{updateDate,jdbcType=TIMESTAMP}, 
+      #{updateBy,jdbcType=VARCHAR}, #{delFlag,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.code.pojo.AmStaff" >
+    insert into am_staff
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="firstName != null" >
+        first_name,
+      </if>
+      <if test="lastName != null" >
+        last_name,
+      </if>
+      <if test="englishName != null" >
+        english_name,
+      </if>
+      <if test="email != null" >
+        email,
+      </if>
+      <if test="businessNo != null" >
+        business_no,
+      </if>
+      <if test="jobTitle != null" >
+        job_title,
+      </if>
+      <if test="employmentDate != null" >
+        employment_date,
+      </if>
+      <if test="resignationDate != null" >
+        resignation_date,
+      </if>
+      <if test="skype != null" >
+        skype,
+      </if>
+      <if test="gender != null" >
+        gender,
+      </if>
+      <if test="tel != null" >
+        tel,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+      <if test="createBy != null" >
+        create_by,
+      </if>
+      <if test="updateDate != null" >
+        update_date,
+      </if>
+      <if test="updateBy != null" >
+        update_by,
+      </if>
+      <if test="delFlag != null" >
+        del_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="firstName != null" >
+        #{firstName,jdbcType=VARCHAR},
+      </if>
+      <if test="lastName != null" >
+        #{lastName,jdbcType=VARCHAR},
+      </if>
+      <if test="englishName != null" >
+        #{englishName,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="businessNo != null" >
+        #{businessNo,jdbcType=VARCHAR},
+      </if>
+      <if test="jobTitle != null" >
+        #{jobTitle,jdbcType=INTEGER},
+      </if>
+      <if test="employmentDate != null" >
+        #{employmentDate,jdbcType=DATE},
+      </if>
+      <if test="resignationDate != null" >
+        #{resignationDate,jdbcType=DATE},
+      </if>
+      <if test="skype != null" >
+        #{skype,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        #{gender,jdbcType=INTEGER},
+      </if>
+      <if test="tel != null" >
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createBy != null" >
+        #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateDate != null" >
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null" >
+        #{updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="delFlag != null" >
+        #{delFlag,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="selectByExample" parameterType="com.code.core.pojo.BaseExample" resultMap="BaseResultMap" >
+    
+  select
+  <if test="distinct" >
+    distinct
+  </if>
+  'true' as QUERYID,
+  <include refid="Base_Column_List" />
+  from am_staff
+  <if test="_parameter != null" >
+    <include refid="Example_Where_Clause" />
+  </if>
+  <if test="orderByClause != null" >
+    order by ${orderByClause}
+  </if>
+
+  </select>
+  <delete id="deleteByExample" parameterType="com.code.core.pojo.BaseExample" >
+    
+  delete from am_staff
+  <if test="_parameter != null" >
+    <include refid="Example_Where_Clause" />
+  </if>
+
+  </delete>
+  <select id="countByExample" parameterType="com.code.core.pojo.BaseExample" resultType="java.lang.Integer" >
+    
+  select count(*) from am_staff
+  <if test="_parameter != null" >
+    <include refid="Example_Where_Clause" />
+  </if>
+
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    
+  update am_staff
+  <set >
+    <if test="record.id != null" >
+      id = #{record.id,jdbcType=VARCHAR},
+    </if>
+    <if test="record.firstName != null" >
+      first_name = #{record.firstName,jdbcType=VARCHAR},
+    </if>
+    <if test="record.lastName != null" >
+      last_name = #{record.lastName,jdbcType=VARCHAR},
+    </if>
+    <if test="record.englishName != null" >
+      english_name = #{record.englishName,jdbcType=VARCHAR},
+    </if>
+    <if test="record.email != null" >
+      email = #{record.email,jdbcType=VARCHAR},
+    </if>
+    <if test="record.businessNo != null" >
+      business_no = #{record.businessNo,jdbcType=VARCHAR},
+    </if>
+    <if test="record.jobTitle != null" >
+      job_title = #{record.jobTitle,jdbcType=INTEGER},
+    </if>
+    <if test="record.employmentDate != null" >
+      employment_date = #{record.employmentDate,jdbcType=DATE},
+    </if>
+    <if test="record.resignationDate != null" >
+      resignation_date = #{record.resignationDate,jdbcType=DATE},
+    </if>
+    <if test="record.skype != null" >
+      skype = #{record.skype,jdbcType=VARCHAR},
+    </if>
+    <if test="record.gender != null" >
+      gender = #{record.gender,jdbcType=INTEGER},
+    </if>
+    <if test="record.tel != null" >
+      tel = #{record.tel,jdbcType=VARCHAR},
+    </if>
+    <if test="record.createDate != null" >
+      create_date = #{record.createDate,jdbcType=TIMESTAMP},
+    </if>
+    <if test="record.createBy != null" >
+      create_by = #{record.createBy,jdbcType=VARCHAR},
+    </if>
+    <if test="record.updateDate != null" >
+      update_date = #{record.updateDate,jdbcType=TIMESTAMP},
+    </if>
+    <if test="record.updateBy != null" >
+      update_by = #{record.updateBy,jdbcType=VARCHAR},
+    </if>
+    <if test="record.delFlag != null" >
+      del_flag = #{record.delFlag,jdbcType=CHAR},
+    </if>
+  </set>
+  <if test="_parameter != null" >
+    <include refid="Update_By_Example_Where_Clause" />
+  </if>
+
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    
+  update am_staff
+  set id = #{record.id,jdbcType=VARCHAR},
+    first_name = #{record.firstName,jdbcType=VARCHAR},
+    last_name = #{record.lastName,jdbcType=VARCHAR},
+    english_name = #{record.englishName,jdbcType=VARCHAR},
+    email = #{record.email,jdbcType=VARCHAR},
+    business_no = #{record.businessNo,jdbcType=VARCHAR},
+    job_title = #{record.jobTitle,jdbcType=INTEGER},
+    employment_date = #{record.employmentDate,jdbcType=DATE},
+    resignation_date = #{record.resignationDate,jdbcType=DATE},
+    skype = #{record.skype,jdbcType=VARCHAR},
+    gender = #{record.gender,jdbcType=INTEGER},
+    tel = #{record.tel,jdbcType=VARCHAR},
+    create_date = #{record.createDate,jdbcType=TIMESTAMP},
+    create_by = #{record.createBy,jdbcType=VARCHAR},
+    update_date = #{record.updateDate,jdbcType=TIMESTAMP},
+    update_by = #{record.updateBy,jdbcType=VARCHAR},
+    del_flag = #{record.delFlag,jdbcType=CHAR}
+  <if test="_parameter != null" >
+    <include refid="Update_By_Example_Where_Clause" />
+  </if>
+
+  </update>
+  <update id="deleteBylogin" parameterType="com.code.pojo.AmStaff" >
+     update  am_staff set del_flag=#{delFlag} where id =#{id}
+  </update>
+</mapper>
