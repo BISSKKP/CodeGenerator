@@ -78,7 +78,7 @@ public class PropertiesUtils {
 			if(f.exists()){
 				f.delete();
 			}
-			prop.load(PropertiesUtils.class.getResourceAsStream("/config.properties"));
+		//	prop.load(PropertiesUtils.class.getResourceAsStream("/config.properties"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}	
