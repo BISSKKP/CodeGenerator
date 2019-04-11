@@ -1,9 +1,8 @@
-package com.code.core.pojo;
+package com.ACID.core.mapper;
 
 import java.util.Date;
 
 public class BasePojo {
-	
 
 	protected String id;
 	
@@ -20,6 +19,7 @@ public class BasePojo {
 	protected String remarks;
 	
 	protected String orderByClause;
+
 	public String getCreateBy() {
 		return createBy;
 	}

@@ -50,9 +50,9 @@
 		</javaClientGenerator>
 		<!-- 指定数据库表 -->
 	<!-- 此配置可以减少生成代码 -->
-	 <table schema="" tableName="${table}"  enableCountByExample="${enableCountByExample}"  enableUpdateByExample="${enableUpdateByExample}" 
+	<!--  <table schema="" tableName="${table}"  enableCountByExample="${enableCountByExample}"  enableUpdateByExample="${enableUpdateByExample}" 
 	enableDeleteByExample="${enableDeleteByExample}" enableSelectByExample="${enableSelectByExample}" selectByExampleQueryId="${selectByExampleQueryId}"  ></table> 
-	
-	
+	 -->
+	<table tableName="${table}"></table>
 	</context>
 </generatorConfiguration>

@@ -33,11 +33,6 @@ import org.mybatis.generator.internal.DefaultShellCallback;
 
 public class MapperPlugin extends PluginAdapter {
 
-    
-    /**
-     * 驼峰命名时使用
-     */
-    private static final char SEPARATOR = '_';
 
     private ShellCallback shellCallback = null;
 
@@ -83,9 +78,13 @@ public class MapperPlugin extends PluginAdapter {
 			rootel.addAttribute(attr);
 		}
 		for(Element el:els){
+			
+			
 //			//获取xml字符串
 			String xml=el.getFormattedContent(0);
-//			//排除<sql
+//			
+			System.out.println(xml);
+			//排除<sql
 			int sql_index=xml.indexOf("<sql");
 //			
 			if(sql_index>=0){
@@ -282,8 +281,11 @@ public class MapperPlugin extends PluginAdapter {
     	//需要额外生成枚举表字段类
     	TopLevelEnumeration enumeration=new TopLevelEnumeration(new FullyQualifiedJavaType(PropertiesUtils.get("pojoenum.pojoEnumPageName")+"."+shortName+"Enum"));
     	
+    	enumeration.setVisibility(JavaVisibility.PUBLIC);
+    	
+    	new MyCommentGenerator().addAuth(enumeration, PropertiesUtils.get("copyright.desc"));
     	//添加私有公共的方法
-    	Field field=new Field("value",new FullyQualifiedJavaType("String"));
+    	Field field=new Field("value_",new FullyQualifiedJavaType("String"));
     	field.setVisibility(JavaVisibility.PRIVATE);
     	enumeration.addField(field);
     	
@@ -291,28 +293,28 @@ public class MapperPlugin extends PluginAdapter {
     	Method cons=new Method(shortName+"Enum");
     	cons.setConstructor(true);
     	cons.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "value"));
-    	cons.addBodyLine("this.value=value;");
+    	cons.addBodyLine("this.value_=value;");
     	enumeration.addMethod(cons);
     	//get set 方法
     	Method setmethod=new Method("setValue");
     	setmethod.setVisibility(JavaVisibility.PUBLIC);
     	//参数
     	setmethod.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "value"));
-    	setmethod.addBodyLine("this.value=value;");
+    	setmethod.addBodyLine("this.value_=value;");
     	enumeration.addMethod(setmethod);
     	
     	//get方法
     	Method getmethod=new Method("getValue");
     	getmethod.setVisibility(JavaVisibility.PUBLIC);
     	getmethod.setReturnType(new FullyQualifiedJavaType("String"));
-    	getmethod.addBodyLine("return value;");
+    	getmethod.addBodyLine("return value_;");
     	enumeration.addMethod(getmethod);
     	//枚举
     	for(IntrospectedColumn column:introspectedTable.getAllColumns()){
     		try {
     			String cname=column.getActualColumnName();
     			if(!hasDef(cname)){
-    				String name=toCamelCase(cname);//大小写转换
+    				String name=StringUtils.toCamelCase(cname);//大小写转换
         			enumeration.addEnumConstant(name+"(\""+cname+"\")");
     			}
 			} catch (Exception e) {
@@ -345,34 +347,6 @@ public class MapperPlugin extends PluginAdapter {
     }
     
     
-    
-    /**驼峰命名
-     * 
-     * @param s
-     * @return
-     */
-    public  String toCamelCase(String s) {
-        if (s == null) {
-            return null;
-        }
-        s = s.toLowerCase();
-        StringBuilder sb = new StringBuilder(s.length());
-        boolean upperCase = false;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-
-            if (c == SEPARATOR) {
-                upperCase = true;
-            } else if (upperCase) {
-                sb.append(Character.toUpperCase(c));
-                upperCase = false;
-            } else {
-                sb.append(c);
-            }
-        }
-
-        return sb.toString();
-    }
     
     
 }

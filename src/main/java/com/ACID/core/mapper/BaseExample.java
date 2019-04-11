@@ -1,12 +1,13 @@
-package com.code.core.pojo;
+package com.ACID.core.mapper;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import com.code.core.pojoenum.BaseColumns;
+import com.code.core.pojo.BaseExample.Criteria;
 import com.code.utils.StringUtils;
+
 
 
 
@@ -190,11 +191,6 @@ public class BaseExample {
             return (Criteria) this;
         }
 
-        public Criteria andColumnBetween(String column,String value1, String value2) {
-            addCriterion(column+" between", value1, value2,  StringUtils.toCamelCase(column));
-            return (Criteria) this;
-        }
-        
         /**
          * 
          * @param column 字段会被驼峰命名一次
@@ -207,8 +203,14 @@ public class BaseExample {
             return (Criteria) this;
         }
 
+        
+        public Criteria andColumnBetween(String column,String value1, String value2) {
+            addCriterion(column+" between", value1, value2, StringUtils.toCamelCase(column));
+            return (Criteria) this;
+        }
+
         public Criteria andColumnNotBetween(String column,String value1, String value2) {
-            addCriterion(column+" not between", value1, value2,  StringUtils.toCamelCase(column));
+            addCriterion(column+" not between", value1, value2, StringUtils.toCamelCase(column));
             return (Criteria) this;
         }
         
