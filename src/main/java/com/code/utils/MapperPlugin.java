@@ -171,7 +171,7 @@ public class MapperPlugin extends PluginAdapter {
 	        update.addAttribute(new Attribute("id", "deleteBylogin"));
 //	        update.addAttribute(new Attribute("resultType", "java.lang.Integer"));//mybatis insert ,update 没有返回值
 	        update.addAttribute(new Attribute("parameterType", introspectedTable.getBaseRecordType()));
-	        update.addElement(new TextElement(" update  "+ introspectedTable.getFullyQualifiedTableNameAtRuntime()+" set del_flag=#{delFlag} where id =#{id}"));
+	        update.addElement(new TextElement(" update  "+ introspectedTable.getFullyQualifiedTableNameAtRuntime()+" set del_flag=#{del_delFlag} where id =#{id}"));
 	        XmlElement parentElement = document.getRootElement();
 	        parentElement.addElement(update);
 	}

@@ -16,6 +16,8 @@ public class BasePojo {
 	
 	protected String delFlag="0";
 	
+	protected String del_delFlag="1";
+	
 	protected String remarks;
 	
 	protected String orderByClause;
@@ -82,6 +84,14 @@ public class BasePojo {
 
 	public void setOrderByClause(String orderByClause) {
 		this.orderByClause = orderByClause;
+	}
+
+	public String getDel_delFlag() {
+		return del_delFlag;
+	}
+
+	public void setDel_delFlag(String del_delFlag) {
+		this.del_delFlag = del_delFlag;
 	}
 	
 	
