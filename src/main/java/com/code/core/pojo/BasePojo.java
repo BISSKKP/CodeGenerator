@@ -1,7 +1,11 @@
 package com.code.core.pojo;
 
 import java.util.Date;
-
+/**
+ * 公共实体继承类
+ * @author ACID
+ *
+ */
 public class BasePojo {
 	
 
@@ -18,6 +22,11 @@ public class BasePojo {
 	protected String delFlag="0";
 	
 	protected String del_delFlag="1";
+	
+	/**
+	 * 插入标记，默认false，id 系统默认生成。 值为true时，使用用户自定id插入数据
+	 */
+	protected boolean newRecorde=false;
 	
 	protected String remarks;
 	
@@ -93,6 +102,33 @@ public class BasePojo {
 	public void setDel_delFlag(String del_delFlag) {
 		this.del_delFlag = del_delFlag;
 	}
+
+	public boolean isNewRecorde() {
+		return newRecorde;
+	}
+
+	public void setNewRecorde(boolean newRecorde) {
+		this.newRecorde = newRecorde;
+	}
+	
+	/**
+	 * 插入之前
+	 */
+	public void preInsert(){
+		this.createDate=new Date();
+		this.updateDate=new Date();
+	}
+	
+	/**
+	 * 更新之前
+	 */
+	public void preUpdate(){
+		this.updateDate=new Date();
+		
+	}
+	
+	
+	
 	
 	
 	

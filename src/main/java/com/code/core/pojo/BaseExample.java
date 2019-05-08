@@ -9,7 +9,11 @@ import com.code.core.pojoenum.BaseColumns;
 import com.code.utils.StringUtils;
 
 
-
+/**
+ * 公共查询封装类
+ * @author ACID
+ *
+ */
 public class BaseExample {
 	
 	 /**

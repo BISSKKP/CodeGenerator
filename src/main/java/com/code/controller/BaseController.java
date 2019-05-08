@@ -16,6 +16,7 @@ import com.code.core.pojo.BaseExample;
 import com.code.core.pojo.BaseExample.Criteria;
 import com.code.core.pojoenum.BaseColumns;
 import com.code.mapper.AmStaffMapper;
+import com.code.service.QueryService;
 import com.code.utils.MapperPlugin;
 import com.code.utils.PropertiesUtils;
 
@@ -24,6 +25,11 @@ public class BaseController {
 	
 	@Autowired
 	private AmStaffMapper staffMaper;
+	
+	
+	@Autowired
+	private QueryService queryService;
+	
 
 	/**
 	 * 生成代码
@@ -128,14 +134,16 @@ public class BaseController {
 	@ResponseBody
 	public Object testCode(){
 		
-		
-		
 		BaseExample example=new BaseExample();
 		
 		Criteria criteria=example.createDelFlagCriteria();
-		criteria.andColumnEqualTo(BaseColumns.id.getValue(), "7407f104-7117-4fcd-8a07-66c5d788875a");
+		//criteria.andColumnEqualTo(BaseColumns.id.getValue(), "7407f104-7117-4fcd-8a07-66c5d788875a");
 		criteria.andColumnEqualTo(BaseColumns.createBy.getValue(), "1");
-		return staffMaper.selectByExample(example);
+		
+		
+		
+		//return staffMaper.selectByExample(example);
+		return queryService.view("f1106d3b-7a4e-434c-a1ae-6bf1fe2e7e58");
 	}
 	
 	
