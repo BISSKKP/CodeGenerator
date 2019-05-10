@@ -152,11 +152,12 @@ public class MapperPlugin extends PluginAdapter {
 			rootel.addElement(el);;
 		}
 		
-		
-		
 		document.setRootElement(rootel);
 		//扩展逻辑删除方法
 		addDeleteMethod(document, introspectedTable);
+		
+		//宽展额外查询方法
+		addFindListMethod(document, introspectedTable);
 		
 		return super.sqlMapDocumentGenerated(document, introspectedTable);
     }
@@ -168,15 +169,73 @@ public class MapperPlugin extends PluginAdapter {
 	 */
 	public void addDeleteMethod(Document document,IntrospectedTable introspectedTable){
 		 XmlElement update = new XmlElement("update");
-	        update.addAttribute(new Attribute("id", "deleteBylogin"));
+	        update.addAttribute(new Attribute("id", "deleteBylogic"));
 //	        update.addAttribute(new Attribute("resultType", "java.lang.Integer"));//mybatis insert ,update 没有返回值
 	        update.addAttribute(new Attribute("parameterType", introspectedTable.getBaseRecordType()));
-	        update.addElement(new TextElement(" update  "+ introspectedTable.getFullyQualifiedTableNameAtRuntime()+" set del_flag=#{del_delFlag} where id =#{id}"));
+	        update.addElement(new TextElement(" update  "+ introspectedTable.getFullyQualifiedTableNameAtRuntime()+" set del_flag=#{del_delFlag},update_date = now(),update_by=#{updateBy} where id =#{id}"));
 	        XmlElement parentElement = document.getRootElement();
 	        parentElement.addElement(update);
 	}
-
 	
+	/**
+	 * 创建额外查询方法
+	 * @param document
+	 * @param introspectedTable
+	 */
+	public void addFindListMethod(Document document,IntrospectedTable introspectedTable){
+		
+		XmlElement select = new XmlElement("select");
+		select.addAttribute(new Attribute("id", "findList"));
+		select.addAttribute(new Attribute("resultType", introspectedTable.getBaseRecordType()));//mybatis insert ,update 没有返回值
+		select.addAttribute(new Attribute("parameterType", introspectedTable.getBaseRecordType()));
+		StringBuffer sb=new StringBuffer();
+		String tables_json=PropertiesUtils.get("tables");
+    	List<Table> tables=	JsonUtils.jsonToList(tables_json, Table.class);
+		sb.append(" select ");
+		int i=0;
+		boolean hasDelFag=false;
+		String newline=System.getProperty("line.separator");
+		for(Table table:tables){
+			if(i==0){
+				sb.append(" a."+table.getColumnName()+""+System.getProperty("line.separator"));
+			}else{
+				sb.append("      ,a."+table.getColumnName()+newline);
+			}
+			i++;
+			if(table.getColumnName().equals("del_flag")){
+				hasDelFag=true;
+			}
+		}
+		
+		//表
+		sb.append(introspectedTable.getFullyQualifiedTableNameAtRuntime()+" a "+newline);
+		
+		//条件
+		sb.append("  <where>  "+newline);
+		
+		if(hasDelFag){
+			sb.append("    a.del_flag = #{delFlag} "+newline);
+		}
+		for(Table table:tables){
+			if(!hasDef(table.getColumnName())){
+				
+				sb.append("   <if test=\""+table.getJavaColumnName()+"!= null and "+table.getJavaColumnName()+"!= ''"+"\">  "+newline);
+				
+				sb.append("      AND a."+table.getColumnName() +" = #{"+table.getJavaColumnName()+"} "+newline);
+				
+				sb.append("   </if> "+newline);
+			}
+		}
+		
+		
+		sb.append("  </where>");
+		
+		select.addElement(new TextElement(sb.toString()));
+        XmlElement parentElement = document.getRootElement();
+        parentElement.addElement(select);
+	}
+	
+
 	/**
 	 * java文件附加内容
 	 */
@@ -224,13 +283,516 @@ public class MapperPlugin extends PluginAdapter {
             }else{
             	//实体类
             	//序列化
-            	ser(unit, mapperJavaFiles, javaFormatter);
+            	resetPojo(unit, mapperJavaFiles, javaFormatter);
+            	
+            	//生成controller
+            	
+            	createController(shortName,mapperJavaFiles,javaFormatter);
+            	
+            	//创建接口
+            	createInterface(shortName,mapperJavaFiles,javaFormatter);
+            	
+            	//创建接口实现类
+            	createInterfaceImpl(shortName,mapperJavaFiles,javaFormatter);
+            	
             	//创建枚举
             	createTableEnum(shortName, mapperJavaFiles, javaFormatter, introspectedTable);
             }
         }
         return mapperJavaFiles;
     }
+    
+    /**
+     * 创建接口实现类
+     * @param shortName
+     * @param mapperJavaFiles
+     * @param javaFormatter
+     */
+    public void createInterfaceImpl(String shortName,List<GeneratedJavaFile> mapperJavaFiles,JavaFormatter javaFormatter){
+    	TopLevelClass impl=new TopLevelClass(new FullyQualifiedJavaType(PropertiesUtils.get("service.targetPackage")+"."+"Impl."+shortName+"ServiceImpl"));
+    	
+    	impl.setVisibility(JavaVisibility.PUBLIC);
+    	impl.addAnnotation("@Service");
+    	impl.addImportedType(new FullyQualifiedJavaType("org.springframework.stereotype.Service"));
+    	
+    	
+    	FullyQualifiedJavaType request=  new FullyQualifiedJavaType("javax.servlet.http.HttpServletRequest");
+   	  
+    	
+    	FullyQualifiedJavaType list=  new FullyQualifiedJavaType("java.util.List");
+    	
+	   	FullyQualifiedJavaType pojo=new FullyQualifiedJavaType(PropertiesUtils.get("pojo.targetPackage")+"."+toUp(shortName));
+	   	  
+	   	FullyQualifiedJavaType ajax=  new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson"));
+	   	FullyQualifiedJavaType page=  new FullyQualifiedJavaType(PropertiesUtils.get("page"));
+	   	  
+	   	FullyQualifiedJavaType myLocaleResolver=new FullyQualifiedJavaType(PropertiesUtils.get("MyLocaleResolver"));
+	   	  
+	   	FullyQualifiedJavaType stringUtils=new FullyQualifiedJavaType(PropertiesUtils.get("StringUtils"));
+	   	  
+	   	FullyQualifiedJavaType  service=new FullyQualifiedJavaType(PropertiesUtils.get("service.targetPackage")+"."+shortName+"Service");
+	   	  
+	   	
+		FullyQualifiedJavaType  mapper=new FullyQualifiedJavaType(PropertiesUtils.get("mapper.targetPackage")+"."+shortName+"Mapper");
+	   	
+		FullyQualifiedJavaType pageInfo=new FullyQualifiedJavaType("com.github.pagehelper.PageInfo");
+		FullyQualifiedJavaType Autowired=new FullyQualifiedJavaType("org.springframework.beans.factory.annotation.Autowired");
+	   	impl.addImportedType(page);
+	   	impl.addImportedType(pojo);
+	   	impl.addImportedType(request);
+	   	impl.addImportedType(ajax);
+	   	impl.addImportedType(myLocaleResolver);
+	   	impl.addImportedType(stringUtils);
+	   	impl.addImportedType(service);
+	   	impl.addImportedType(mapper);
+	   	impl.addImportedType(pageInfo);
+	   	impl.addImportedType(Autowired);
+	   	impl.addImportedType(list);
+	   	
+	   	FullyQualifiedJavaType	baseService  =	new FullyQualifiedJavaType(PropertiesUtils.get("baseService"));
+	   	
+	   	//添加泛型
+	   	baseService.addTypeArgument(mapper);
+	   	baseService.addTypeArgument(pojo);
+	   	
+	   	impl.setSuperClass(baseService);
+	   	
+	   	//继承
+	   	impl.addSuperInterface(service);
+	   	
+	   	Field myesolver=new Field("myLocaleResolver",myLocaleResolver);
+	   	myesolver.setVisibility(JavaVisibility.PRIVATE);
+	   	myesolver.addAnnotation("@Autowired");
+	   	impl.addField(myesolver);
+	   	
+	   	
+	   //暂停
+	   	createdataImpl(shortName,service.getShortName(),impl);
+	   	
+	   	//创建view 的实现方法
+	   	createViewImpl(shortName,service.getShortName(),impl);
+	   	
+	   	//创建get的实现方法
+	   	createGetImpl(shortName,service.getShortName(),impl);
+	   	
+	   	//创建delete的实现方法
+		createDeleteImpl(shortName,service.getShortName(),impl);
+    	
+    	  
+  	  GeneratedJavaFile fimpl =  new GeneratedJavaFile(impl, "D:\\ccc", javaFormatter);
+  	  mapperJavaFiles.add(fimpl);
+    }
+    
+    /**
+     * 创建data实现方法
+     */
+    public void createdataImpl(String shortName,String serviceName,TopLevelClass impl){
+    	
+    	Method method=new Method("data");
+    	
+    	method.setVisibility(JavaVisibility.PUBLIC);
+    	method.addAnnotation("@Override");
+    	FullyQualifiedJavaType page=  new FullyQualifiedJavaType(PropertiesUtils.get("page"));
+    	FullyQualifiedJavaType request=  new FullyQualifiedJavaType("javax.servlet.http.HttpServletRequest");
+     	  
+	   	FullyQualifiedJavaType pojo=new FullyQualifiedJavaType(PropertiesUtils.get("pojo.targetPackage")+"."+toUp(shortName));
+    	method.setReturnType(page);
+    	
+    	method.addParameter(new Parameter(pojo, tolow(shortName)));
+    	method.addParameter(new Parameter(request, "request"));
+    	
+    	method.addBodyLine("return new Page(new PageInfo<>(findList("+tolow(shortName)+",request"+")));");
+    	
+    	impl.addMethod(method);
+    }
+    
+    /**
+     * 创建view的实现方法
+     * @param shortName
+     * @param serviceName
+     * @param impl
+     */
+    public void createViewImpl(String shortName,String serviceName,TopLevelClass impl){
+    	
+    	Method method=new Method("view");
+    	
+    	method.setVisibility(JavaVisibility.PUBLIC);
+    	method.addAnnotation("@Override");
+    	FullyQualifiedJavaType ajax=  new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson"));
+     	  
+    	method.setReturnType(ajax);
+    	
+    	method.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+    	
+    	method.addBodyLine("AjaxJson j=new AjaxJson();");
+    	method.addBodyLine("j.setSuccess(false);");
+    	
+    	method.addBodyLine("try {");
+    	method.addBodyLine("if(StringUtils.isNotBlank(id)){");
+    	method.addBodyLine("j.setSuccess(true);");
+    	method.addBodyLine("j.put(\""+tolow(shortName)+"\", get(id));");
+    	method.addBodyLine("j.setMsg(\"OK\");");
+    	method.addBodyLine("}else{");
+    	method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"obj.notFound\"));");
+    	method.addBodyLine("}");
+    	method.addBodyLine("} catch (Exception e) {");
+    	
+    	method.addBodyLine("e.printStackTrace();");
+    	method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"sys.err.waiting\"));");
+    	method.addBodyLine("}");
+    	method.addBodyLine("return j;");
+    	impl.addMethod(method);
+    }
+    
+    /**
+     * delete的实现方法
+     * @param shortName
+     * @param serviceName
+     * @param impl
+     */
+    public void createDeleteImpl(String shortName,String serviceName,TopLevelClass impl){
+    	
+    	Method method=new Method("delete");
+    	
+    	method.setVisibility(JavaVisibility.PUBLIC);
+    	method.addAnnotation("@Override");
+     	  
+    	FullyQualifiedJavaType ajax=  new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson"));
+     	
+    	method.setReturnType(ajax);
+    	
+    	method.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+    	
+    	method.addBodyLine("AjaxJson j=new AjaxJson();");
+    	method.addBodyLine("j.setSuccess(false);");
+    	
+    	method.addBodyLine("try {");
+    	method.addBodyLine("if(StringUtils.isNotBlank(id)){");
+    	method.addBodyLine("j.setSuccess(true);");
+    	
+    	method.addBodyLine("deleteByLogic(new "+toUp(shortName)+"(id));");
+    	
+    	method.addBodyLine("j.setMsg(\"OK\");");
+    	method.addBodyLine("}else{");
+    	method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"obj.notFound\"));");
+    	method.addBodyLine("}");
+    	method.addBodyLine("} catch (Exception e) {");
+    	
+    	method.addBodyLine("e.printStackTrace();");
+    	method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"sys.err.waiting\"));");
+    	method.addBodyLine("}");
+    	method.addBodyLine("return j;");
+    	impl.addMethod(method);
+    	
+    }
+ /**
+  * get的实现方法
+  * @param shortName
+  * @param serviceName
+  * @param impl
+  */
+public void createGetImpl(String shortName,String serviceName,TopLevelClass impl){
+    	
+    	Method method=new Method("get");
+    	
+    	method.setVisibility(JavaVisibility.PUBLIC);
+    	method.addAnnotation("@Override");
+     	  
+    	FullyQualifiedJavaType pojo=new FullyQualifiedJavaType(PropertiesUtils.get("pojo.targetPackage")+"."+toUp(shortName));
+    	
+    	method.setReturnType(pojo);
+    	
+    	method.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+    	
+    	method.addBodyLine("return mapper.selectByPrimaryKey(id);");
+    	
+    	impl.addMethod(method);
+    }
+    
+    
+    /**
+     * 创建 service 接口层
+     * @param shortName
+     * @param mapperJavaFiles
+     * @param javaFormatter
+     */
+  public void  createInterface(String shortName,List<GeneratedJavaFile> mapperJavaFiles,JavaFormatter javaFormatter){
+	  
+	  Interface anInterface = new Interface(new FullyQualifiedJavaType(PropertiesUtils.get("service.targetPackage")+"."+shortName+"Service"));
+	  
+	  
+	  anInterface.setVisibility(JavaVisibility.PUBLIC);
+	  
+	  //data接口
+	  Method data=new Method("data");
+	  FullyQualifiedJavaType request=  new FullyQualifiedJavaType("javax.servlet.http.HttpServletRequest");
+	  
+	  FullyQualifiedJavaType pojo=new FullyQualifiedJavaType(PropertiesUtils.get("pojo.targetPackage")+"."+toUp(shortName));
+	  
+	  FullyQualifiedJavaType ajax=  new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson"));
+	  FullyQualifiedJavaType page=  new FullyQualifiedJavaType(PropertiesUtils.get("page"));
+	  
+	  anInterface.addImportedType(page);
+	  anInterface.addImportedType(pojo);
+	  anInterface.addImportedType(request);
+	  anInterface.addImportedType(ajax);
+	  
+	  data.addParameter(new Parameter(pojo, tolow(shortName)));
+	  data.addParameter(new Parameter(request, "request"));
+	  
+	  data.setReturnType(page);
+	  data.addJavaDocLine("/** \n"
+	  		+ "* @param "+tolow(shortName)+"\n"
+	  		+ "* @param "+"request"+"\n"
+	  		+ "**/");
+	  
+	  anInterface.addMethod(data);
+	  
+	  
+	  // view方法
+	  Method view=new Method("view");
+	  view.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+	  view.setReturnType(ajax);
+	  
+	  view.addJavaDocLine("/** \n"
+		  		+ "* @param "+"id"+" \n "
+		  		+ "*/");
+	  
+	  //get方法
+	  
+	  Method get=new Method("get");
+	  get.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+	  get.setReturnType(pojo);
+	  
+	  get.addJavaDocLine("/** \n"
+		  		+ "* @param "+"id"+" \n "
+		  		+ "*/");
+	  anInterface.addMethod(get);
+	  
+	 
+	  //delete方法
+	  Method delete=new Method("get");
+	  delete.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+	  delete.setReturnType(ajax);
+	  
+	  delete.addJavaDocLine("/** \n"
+		  		+ "* @param "+"id"+" \n "
+		  		+ "*/");
+	  anInterface.addMethod(delete);
+	  
+	  //saveorupdate
+	  Method saveorupdate=new Method("saveOrUpdate");
+	  saveorupdate.addParameter(new Parameter(pojo, tolow(shortName)));
+	  saveorupdate.setReturnType(ajax);
+	  
+	  saveorupdate.addJavaDocLine("/** \n"
+		  		+ "* @param "+tolow(shortName)+" \n "
+		  		+ "*/");
+	  anInterface.addMethod(saveorupdate);
+	  
+	  
+	  GeneratedJavaFile fanInterface =  new GeneratedJavaFile(anInterface, "D:\\ccc", javaFormatter);
+	  mapperJavaFiles.add(fanInterface);
+  }
+    
+    
+    //创建controller
+    public void createController(String shortName,List<GeneratedJavaFile> mapperJavaFiles,JavaFormatter javaFormatter){
+    	FullyQualifiedJavaType type=new FullyQualifiedJavaType(PropertiesUtils.get("controller.targetPackage")+"."+shortName+"Controller");
+    	TopLevelClass controller=new TopLevelClass(type);
+    	controller.setSuperClass(new FullyQualifiedJavaType("BaseController"));
+    	controller.addImportedType(new FullyQualifiedJavaType("com.code.core.controller.BaseController"));
+    	
+    	controller.getType().getPackageName();
+    	
+    	controller.setVisibility(JavaVisibility.PUBLIC);
+    	controller.addAnnotation("@Controller");
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.stereotype.Controller"));
+    	controller.addAnnotation("@RequestMapping(\"/staff\")");
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.RequestMapping"));
+    	
+    	String shiro=PropertiesUtils.get("shiro");
+    	
+    	String swagger=PropertiesUtils.get("swagger2");
+    	
+    	//导入get ，post request包
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.GetMapping"));
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.PostMapping"));
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.web.bind.annotation.ResponseBody"));
+    	
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.beans.factory.annotation.Autowired"));
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.validation.annotation.Validated"));
+    	controller.addImportedType(new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson")));
+    	
+    	controller.addImportedType(new FullyQualifiedJavaType("javax.servlet.http.HttpServletRequest"));
+    	//准备service
+    	Field field=new Field(toUp(shortName)+"Service", new FullyQualifiedJavaType(PropertiesUtils.get("service.targetPackage")+"."+toUp(shortName)+"Service"));
+    	field.addAnnotation("@Autowired");
+    	field.setVisibility(JavaVisibility.PUBLIC);
+    	controller.addField(field);
+    	
+    	//导入service包
+    	controller.addImportedType(new FullyQualifiedJavaType("com.ACID.service."+toUp(shortName)+"Service"));
+    	
+    	
+    	if("0".equals(shiro)){
+    		controller.addImportedType(new FullyQualifiedJavaType("org.apache.shiro.authz.annotation.RequiresPermissions"));
+    	}
+    	if("0".equals(swagger)){
+    		controller.addImportedType(new FullyQualifiedJavaType("io.swagger.annotations.ApiImplicitParam"));
+    		controller.addImportedType(new FullyQualifiedJavaType("io.swagger.annotations.ApiImplicitParams"));
+    		controller.addImportedType(new FullyQualifiedJavaType("io.swagger.annotations.ApiOperation"));
+    	}
+    	//view 方法
+    	createViewmethod(shortName, shiro, swagger, controller);
+    	
+    	//delete 方法
+    	createDeletemethod(shortName, shiro, swagger, controller);
+    	
+    	//data方法
+    	createDatamethod(shortName, shiro, swagger, controller);
+    	
+    	//save or update
+    	createSaveOrUpdatemethod(shortName, shiro, swagger, controller);
+    	
+    	//导入实体包
+    	controller.addImportedType(new FullyQualifiedJavaType(PropertiesUtils.get("pojo.targetPackage")+"."+toUp(shortName)));
+    	
+    	GeneratedJavaFile fcontroller =  new GeneratedJavaFile(controller, "D:\\ccc", javaFormatter);
+    	mapperJavaFiles.add(fcontroller);
+    }
+    
+    /**
+     * controller
+     * 创建view 方法
+     * @param shortName
+     * @param shiro
+     * @param swagger
+     * @param controller
+     */
+    public void createViewmethod(String shortName,String shiro,String swagger,TopLevelClass controller){
+    	Method viewMethod=new Method("view");
+    	
+    	
+    	if("0".equals(shiro)){
+    		viewMethod.addAnnotation("@RequiresPermissions(\""+shortName+":view"+"\")");
+    	}
+    	if("0".equals(swagger)){
+    		viewMethod.addAnnotation("@ApiOperation(value=\"查询"+shortName+"\",notes=\"根据id查询"+shortName+"\")");
+        	viewMethod.addAnnotation("@ApiImplicitParams({@ApiImplicitParam(name = \"id\", value = \"id\", dataType = \"String\", required = true,  paramType = \"query\")})");
+    	}
+    	
+    	viewMethod.addAnnotation("@GetMapping(\"/view\")");
+    	viewMethod.addAnnotation("@ResponseBody");
+    	
+    	viewMethod.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+    	viewMethod.setReturnType(new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson")));
+    	viewMethod.setVisibility(JavaVisibility.PUBLIC);
+    	viewMethod.addBodyLine("return " +tolow(shortName)+"Service.view(id);");
+    	controller.addMethod(viewMethod);
+    }
+    
+    /**
+     * save or update
+     * controller
+     * @param shortName
+     * @param shiro
+     * @param swagger
+     * @param controller
+     */
+    public void createSaveOrUpdatemethod(String shortName,String shiro,String swagger,TopLevelClass controller){
+    	Method viewMethod=new Method("saveOrUpdate");
+    	
+    	if("0".equals(shiro)){
+    		viewMethod.addAnnotation("@RequiresPermissions(\""+shortName+":list"+"\")");
+    	}
+    	if("0".equals(swagger)){
+    		viewMethod.addAnnotation("@ApiOperation(value=\"分页获取"+shortName+"数据\",notes=\"分页查询"+shortName+" 数据\")");
+        	viewMethod.addAnnotation("@ApiImplicitParams({"
+			+"@ApiImplicitParam(\"name = \"pageNum\", value = \"pageNum\", dataType = \"int\", required = false, defaultValue = \"1\", paramType = \"query\"),"
+			+"@ApiImplicitParam(name = \"pageSize\", value = \"pageSize\", dataType = \"int\", required = false, defaultValue = \"10\", paramType = \"query\"),"
+			+"})");
+    	}
+    	viewMethod.addAnnotation("@GetMapping(\"/data\")");
+    	viewMethod.addAnnotation("@ResponseBody");
+    	
+    	Parameter parameter=new Parameter(new FullyQualifiedJavaType(shortName), tolow(shortName));
+    	parameter.addAnnotation("@Validated");
+    	
+    	viewMethod.addParameter(parameter);
+    	controller.addImportedType(new FullyQualifiedJavaType("org.springframework.validation.annotation.Validated"));
+    	
+    	viewMethod.setReturnType(new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson")));
+    	
+    	viewMethod.setVisibility(JavaVisibility.PUBLIC);
+    	viewMethod.addBodyLine("return " +tolow(shortName)+"Service.saveOrUpdate("+tolow(shortName)+");");
+    	controller.addMethod(viewMethod);
+    }
+    
+    /**
+     * 分页方法
+     * @param shortName
+     * @param shiro
+     * @param swagger
+     * @param controller
+     */
+    public void createDatamethod(String shortName,String shiro,String swagger,TopLevelClass controller){
+    	Method viewMethod=new Method("getData");
+    	
+    	
+    	if("0".equals(shiro)){
+    		viewMethod.addAnnotation("@RequiresPermissions(\""+shortName+":list"+"\")");
+    	}
+    	if("0".equals(swagger)){
+    		viewMethod.addAnnotation("@ApiOperation(value=\"分页获取"+shortName+"数据\",notes=\"分页查询"+shortName+" 数据\")");
+        	viewMethod.addAnnotation("@ApiImplicitParams({"
+			+"@ApiImplicitParam(\"name = \"pageNum\", value = \"pageNum\", dataType = \"int\", required = false, defaultValue = \"1\", paramType = \"query\"),"
+			+"@ApiImplicitParam(name = \"pageSize\", value = \"pageSize\", dataType = \"int\", required = false, defaultValue = \"10\", paramType = \"query\"),"
+			+"})");
+    	}
+    	viewMethod.addAnnotation("@GetMapping(\"/data\")");
+    	viewMethod.addAnnotation("@ResponseBody");
+    	
+    	viewMethod.addParameter(new Parameter(new FullyQualifiedJavaType("javax.servlet.http.HttpServletRequest"), "request"));
+    	
+    	viewMethod.addParameter(new Parameter(new FullyQualifiedJavaType(toUp(shortName)), tolow(shortName)));
+    	
+    	viewMethod.setReturnType(new FullyQualifiedJavaType(PropertiesUtils.get("page")));
+    	controller.addImportedType(new FullyQualifiedJavaType(PropertiesUtils.get("page")));
+    	viewMethod.setVisibility(JavaVisibility.PUBLIC);
+    	viewMethod.addBodyLine("return " +tolow(shortName)+"Service.data("+tolow(shortName)+",request);");
+    	controller.addMethod(viewMethod);
+    }
+    
+    
+    /**
+     * 删除方法
+     * @param shortName
+     * @param shiro
+     * @param swagger
+     * @param controller
+     */
+    public void createDeletemethod(String shortName,String shiro,String swagger,TopLevelClass controller){
+    	Method viewMethod=new Method("delete");
+    	
+    	if("0".equals(shiro)){
+    		viewMethod.addAnnotation("@RequiresPermissions(\""+shortName+":del"+"\")");
+    	}
+    	if("0".equals(swagger)){
+    		viewMethod.addAnnotation("@ApiOperation(value=\"删除"+shortName+"\",notes=\"根据id删除"+shortName+"\")");
+        	viewMethod.addAnnotation("@ApiImplicitParams({@ApiImplicitParam(name = \"id\", value = \"id\", dataType = \"String\", required = true,  paramType = \"query\")})");
+    	}
+    	
+    	viewMethod.addAnnotation("@GetMapping(\"/delete\")");
+    	viewMethod.addAnnotation("@ResponseBody");
+    	
+    	viewMethod.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+    	viewMethod.setReturnType(new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson")));
+    	viewMethod.setVisibility(JavaVisibility.PUBLIC);
+    	viewMethod.addBodyLine("return " +tolow(shortName)+"Service.delete(id);");
+    	controller.addMethod(viewMethod);
+    }
+    
     /**
      * 废弃exmaple
      * @param unit
@@ -251,24 +813,148 @@ public class MapperPlugin extends PluginAdapter {
     }
     
     /**
-     * 实体类序列化
+     * 重写pojo
      * @param unit
      * @param mapperJavaFiles
      * @param javaFormatter
      */
-    public void ser( CompilationUnit unit, List<GeneratedJavaFile> mapperJavaFiles,JavaFormatter javaFormatter){
+    public void resetPojo( CompilationUnit unit, List<GeneratedJavaFile> mapperJavaFiles,JavaFormatter javaFormatter){
     	TopLevelClass topclass = (TopLevelClass)unit;
-    	topclass.addImportedType(new FullyQualifiedJavaType("java.io.Serializable"));
-    	topclass.addSuperInterface(new FullyQualifiedJavaType("Serializable"));
+    	
+    	String pojoName=topclass.getType().getShortName();
+    	System.out.println(pojoName);
+    	//重写pojo
+    	TopLevelClass newPojo=new TopLevelClass(topclass.getType());
+    	
+    	newPojo.setVisibility(JavaVisibility.PUBLIC);
+    	
+    	String basePojo=PropertiesUtils.get("pojo.rootClass");
+    	//继承
+    	newPojo.setSuperClass(new FullyQualifiedJavaType(basePojo.substring(basePojo.lastIndexOf(".")+1, basePojo.length())));
+    	
+    	//导包
+    	newPojo.addImportedType(basePojo);
+    	
+    	String tables_json=PropertiesUtils.get("tables");
+    	List<Table> tables=	JsonUtils.jsonToList(tables_json, Table.class);
+    	boolean hasId=false;
+    	
+    	
+    	boolean validImportFlag_null=false;
+    	boolean validImportFlag_length=false;
+    	boolean hasDate=false;
+    	for(Table table:tables ){
+    		boolean isDate=false;
+    		if("id".equals(table.getColumnName())){
+    			hasId=true;
+    			continue;//进行下一次循环
+    		}
+    		//排除默认字段
+    		if(!hasDef(table.getColumnName())){
+    			//定义属性
+    			Field field=new Field();
+    			field.addJavaDocLine("/**"+table.getRemarks()+"*/");
+    			
+    			if("date".equals(table.getJavaType().toLowerCase())){
+    				newPojo.addImportedType(new FullyQualifiedJavaType("java.util.Date"));
+    				isDate=true;
+    				hasDate=true;
+    			}
+    			field.setType(new FullyQualifiedJavaType(table.getJavaType()));
+    			
+    			field.setVisibility(JavaVisibility.PRIVATE);
+    			field.setName(table.getJavaColumnName());
+    			
+    			
+    			
+    			newPojo.addField(field);
+    			
+    			//创建get set 
+    			Method getmethod=new Method("get"+toUp(table.getJavaColumnName()));
+    			getmethod.setVisibility(JavaVisibility.PUBLIC);
+    			getmethod.setReturnType(new FullyQualifiedJavaType(table.getJavaType()));
+    			getmethod.addBodyLine("return "+table.getJavaColumnName()+";");
+    			
+    				//json格式化日期
+	    			if(isDate){
+	    				getmethod.addAnnotation("@JsonFormat(pattern = \"yyyy-MM-dd HH:mm:ss\",timezone=\"GMT+8\")");
+	    			}
+    			
+    				if(1==table.getLengthLimit()){
+    				
+    				if("Integer".equals(table.getJavaType())||"Double".equals(table.getJavaType())||"Float".equals(table.getJavaType())){
+    					//field.addAnnotation("@NotEmpty(message=\""+table.getLengthLimit_tip() +"\")");
+    				}else if(isDate){
+    					
+    					getmethod.addAnnotation("@Null(message=\""+table.getLengthLimit_tip() +"\")");
+    					  validImportFlag_null=true;
+    				}else{
+    					//需要验证参数
+    					getmethod.addAnnotation("@Length(min="+table.getLengthLimit_min()+", max="+table.getLengthLimit_max()+", message=\""+table.getLengthLimit_tip()+"\")");
+    					validImportFlag_length=true;
+    				}
+    			}
+    			
+    			
+    			newPojo.addMethod(getmethod);
+    			
+    			Method setmethod=new Method("set"+toUp(table.getJavaColumnName()));
+    			setmethod.setVisibility(JavaVisibility.PUBLIC);
+    			setmethod.setReturnType(new FullyQualifiedJavaType("void"));
+    			setmethod.addParameter(new Parameter(new FullyQualifiedJavaType(table.getJavaType()), table.getJavaColumnName()));
+    			setmethod.addBodyLine("this."+table.getJavaColumnName()+"="+table.getJavaColumnName()+";");
+    			newPojo.addMethod(setmethod);
+    		}
+    	}
+    	
+    	//导入验证注解包
+    	if(validImportFlag_length){
+    		newPojo.addImportedType(new FullyQualifiedJavaType("org.hibernate.validator.constraints.Length"));
+    	}
+    	if(validImportFlag_null){
+    		newPojo.addImportedType(new FullyQualifiedJavaType("javax.validation.constraints.Null"));
+    	}
+    	if(hasDate){
+    		newPojo.addImportedType(new FullyQualifiedJavaType("com.fasterxml.jackson.annotation.JsonFormat"));
+    		
+    	}
+    	
+    	
+    	//新增默认构造器
+    	Method cons1=new Method(pojoName);
+    	cons1.setConstructor(true);
+    	cons1.setVisibility(JavaVisibility.PUBLIC);
+    	cons1.addBodyLine("");
+    	newPojo.addMethod(cons1);
+    	
+    	//有参构造器
+    	if(hasId){
+    		Method cons2=new Method(pojoName);
+    		cons2.setVisibility(JavaVisibility.PUBLIC);
+        	cons2.setConstructor(true);
+        	cons2.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+        	cons2.addBodyLine("this.id=id;");
+        	newPojo.addMethod(cons2);
+    	}
+    	
+    	//序列化
+    	newPojo.addImportedType(new FullyQualifiedJavaType("java.io.Serializable"));
+    	newPojo.addSuperInterface(new FullyQualifiedJavaType("Serializable"));
     	Field version=new Field();
     	version.setFinal(true);
     	version.setName("serialVersionUID = 1L");
     	version.setStatic(true);
     	version.setType(new FullyQualifiedJavaType("long"));
     	version.setVisibility(JavaVisibility.PRIVATE);
-    	topclass.addField(version);
-    	GeneratedJavaFile pojo =  new GeneratedJavaFile(topclass, PropertiesUtils.get("targetProject"), javaFormatter);
-    	mapperJavaFiles.add(pojo);
+    	newPojo.addField(version);
+    	
+    	
+    	GeneratedJavaFile fnewPojo =  new GeneratedJavaFile(newPojo, "D:\\ccc", javaFormatter);
+    	mapperJavaFiles.add(fnewPojo);
+    	
+    	//序列化---屏蔽原来的
+    	//GeneratedJavaFile pojo =  new GeneratedJavaFile(topclass,PropertiesUtils.get("targetProject"), javaFormatter);
+    	//mapperJavaFiles.add(pojo);
     }
     /**
      * 生成枚举类对应数据库表字段
@@ -346,7 +1032,40 @@ public class MapperPlugin extends PluginAdapter {
     	return false;
     }
     
+    /**
+     * 首字母大写
+     * @param str
+     * @return
+     */
+    public String toUp(String str){
+    	
+    	StringBuffer sb=new StringBuffer();
+    	for(int i=0;i<str.length();i++){
+    		if(i==0){
+    			sb.append((str.charAt(i)+"").toUpperCase());
+    		}else{
+    			sb.append(str.charAt(i));
+    		}
+    	}
+    	return sb.toString();
+    }
     
-    
+    /**
+     * 首字母小写
+     * @param str
+     * @return
+     */
+    public String tolow(String str){
+    	
+    	StringBuffer sb=new StringBuffer();
+    	for(int i=0;i<str.length();i++){
+    		if(i==0){
+    			sb.append((str.charAt(i)+"").toLowerCase());
+    		}else{
+    			sb.append(str.charAt(i));
+    		}
+    	}
+    	return sb.toString();
+    }
     
 }

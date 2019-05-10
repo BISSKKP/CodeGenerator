@@ -2,6 +2,7 @@ package com.code.controller;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -17,6 +18,7 @@ import com.code.core.pojo.BaseExample.Criteria;
 import com.code.core.pojoenum.BaseColumns;
 import com.code.mapper.AmStaffMapper;
 import com.code.service.QueryService;
+import com.code.utils.GetTableInfo;
 import com.code.utils.MapperPlugin;
 import com.code.utils.PropertiesUtils;
 
@@ -30,6 +32,9 @@ public class BaseController {
 	@Autowired
 	private QueryService queryService;
 	
+	@Autowired
+	private GetTableInfo getTableInfo;
+	
 
 	/**
 	 * 生成代码
@@ -39,20 +44,21 @@ public class BaseController {
 	@RequestMapping("/generate")
 	@ResponseBody
 	public Map<String, Object> generate(String targetProject,String pojoTargetPackage,String pojoRootClass,String pojoenumPojoEnumPageName,
-			String exampleBaseExampleClass,String xmlTargetPackage,String mapperTargetPackage,String extendMapperPackageName,String table,String copyrightDesc){
+			String exampleBaseExampleClass,String xmlTargetPackage,String mapperTargetPackage,String extendMapperPackageName,
+			String table,String copyrightDesc,String tables,String shiro,String swagger2){
 		Map<String, Object> map=new HashMap<>();
 		boolean success=false;
 		String msg="生成异常";
 		try {
 			
 			setProperties(targetProject, pojoTargetPackage, pojoRootClass, pojoenumPojoEnumPageName, 
-					exampleBaseExampleClass, xmlTargetPackage, mapperTargetPackage, extendMapperPackageName, table, copyrightDesc);
+					exampleBaseExampleClass, xmlTargetPackage, mapperTargetPackage, extendMapperPackageName, table, copyrightDesc,tables,shiro,swagger2);
 			
 			//生成临时文件
 			PropertiesUtils.save();
-			//生成代码
+//			//生成代码
 			MapperPlugin.generate();
-			//删除临时文件
+//			//删除临时文件
 			PropertiesUtils.delete();
 			msg="OK";
 			success=true;
@@ -84,7 +90,8 @@ public class BaseController {
 	 * @param copyrightDesc
 	 */
 	private void setProperties(String targetProject,String pojoTargetPackage,String pojoRootClass,String pojoenumPojoEnumPageName,
-			String exampleBaseExampleClass,String xmlTargetPackage,String mapperTargetPackage,String extendMapperPackageName,String table,String copyrightDesc){
+			String exampleBaseExampleClass,String xmlTargetPackage,String mapperTargetPackage,String extendMapperPackageName,
+			String table,String copyrightDesc,String tables,String shiro,String swagger2){
 		
 		if(!StringUtils.isEmpty(targetProject)){
 			PropertiesUtils.setValue("targetProject",targetProject);
@@ -128,6 +135,19 @@ public class BaseController {
 		if(!StringUtils.isEmpty(copyrightDesc)){
 			PropertiesUtils.setValue("copyright.desc",copyrightDesc);
 		}
+		
+		if(!StringUtils.isEmpty(tables)){
+			PropertiesUtils.setValue("tables", tables);
+		}
+		
+		if(!StringUtils.isEmpty(shiro)){
+			PropertiesUtils.setValue("shiro", shiro);
+		}
+		
+		if(!StringUtils.isEmpty(shiro)){
+			PropertiesUtils.setValue("swagger2", swagger2);
+		}
+		
 	}
 	
 	@GetMapping("/testCode")
@@ -144,6 +164,21 @@ public class BaseController {
 		
 		//return staffMaper.selectByExample(example);
 		return queryService.view("f1106d3b-7a4e-434c-a1ae-6bf1fe2e7e58");
+	}
+	
+	@GetMapping("/getTables")
+	@ResponseBody
+	public List<String> getTables() throws Exception{
+		
+		
+		return getTableInfo.printTableNames();
+	}
+	
+	@GetMapping("/getTableDetail")
+	@ResponseBody
+	public List<Map<String, Object>> getTableDetail(String tableName) throws Exception{
+		
+		return getTableInfo.printColumnInfo(tableName);
 	}
 	
 	

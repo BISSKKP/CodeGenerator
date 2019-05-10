@@ -19,7 +19,11 @@ public abstract class BaseService<M extends MapperService<T> ,T extends BasePojo
 		return mapper.selectByPrimaryKey(id);
 	}
 	
-	
+	/**
+	 * 封装插入方法
+	 * @param t
+	 * @return
+	 */
 	public int save(T t){
 		if(t.getId()!=null&&t.getId().trim()!=""){
 			if(t.isNewRecorde()){

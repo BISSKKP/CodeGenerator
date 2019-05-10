@@ -15,8 +15,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+         <validator.version>5.4.0.Final</validator.version>
         <!-- asp -->
 		<asp.version>1.5.4</asp.version>
+		
+		<!-- 分页插件 -->
+		<pagehelper.version>4.1.4</pagehelper.version>
+		<pagehelper-starter.version>1.2.5</pagehelper-starter.version>
 		
 			<!-- mybatis -->
 		<mybatis.version>1.3.2</mybatis.version>
@@ -31,6 +36,10 @@
 		<guava.version>20.0</guava.version>
 		<commons-io.version>1.3.2</commons-io.version>
 		<commons-net.version>3.3</commons-net.version>
+		
+		<!-- shiro -->
+		<shiro.version>1.3.2</shiro.version>
+		<shiroRedis.version>3.1.0</shiroRedis.version>
         
       </properties>
 	
@@ -39,6 +48,35 @@
   			<groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
        	 </dependency>
+       	 
+       	 <!-- springboot 特殊处理 -->
+			<dependency>
+			    <groupId>com.github.pagehelper</groupId>
+			    <artifactId>pagehelper-spring-boot-starter</artifactId>
+			    <version>${pagehelper-starter.version}</version>
+			</dependency>
+       	 
+       	 <!-- shiro  -->
+			<dependency>
+			    <groupId>org.apache.shiro</groupId>
+			    <artifactId>shiro-spring</artifactId>
+			    <version>${shiro.version}</version>
+			</dependency>
+			
+			<!-- shiro 集成redis -->
+			<dependency>
+            <groupId>org.crazycake</groupId>
+            <artifactId>shiro-redis</artifactId>
+            <version>${shiroRedis.version}</version>
+        </dependency>
+       	 
+       	    <!-- bean validate -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+              <version>${validator.version}</version>
+        </dependency>
+       	 
        	 
        	 <!-- springtest -->
 		<dependency>

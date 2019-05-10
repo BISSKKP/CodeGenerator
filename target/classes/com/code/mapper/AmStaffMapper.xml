@@ -325,7 +325,15 @@
   </if>
 
   </update>
+   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap" >
+    
+  select 
+  <include refid="Base_Column_List" />
+  from am_staff
+  where id = #{id,jdbcType=VARCHAR}
+
+  </select>
   <update id="deleteBylogin" parameterType="com.code.pojo.AmStaff" >
-     update  am_staff set del_flag=#{delFlag} where id =#{id}
+     update  am_staff set del_flag=#{del_delFlag} where id =#{id}
   </update>
 </mapper>

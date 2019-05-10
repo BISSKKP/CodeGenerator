@@ -14,6 +14,18 @@
  		$("#btn01").click(function(){
  			submit();		
  		});
+ 		
+ 		//数据库表的选择
+ 		$("#selectTable").change(function(){
+ 			var table=$("#selectTable").val();
+ 			$("#table").val(table);
+ 			if(null!=table&&""!=table.trim()){
+ 				getTableDetail(table)
+ 			}
+ 		});
+ 		
+ 		initSelect();
+ 		$("#table").val("");
  	});
  	//加载值
  	function initValue(data){
@@ -34,31 +46,239 @@
 			$("#xmlTargetPackage").val(data["xml.targetPackage"]);
 			$("#exampleBaseExampleClass").val(data["example.baseExampleClass"]);
 			$("#mapperTargetPackage").val(data["mapper.targetPackage"]);
-			$("#table").val(data["table"]);
+			//$("#table").val(data["table"]);
 			$("#copyrightDesc").val(data["copyright.desc"]);
  		}catch(e){
  			console.log(e);
  		}
  	}
+ 	
+ var requiredInputName;
+ 	
+ 	
  	function submit(){
  		var fd=new FormData(document.querySelector("form"));
- 		$.ajax({
- 			  url: ctxPath+"generate",
- 			  type: "POST",
- 			  data: fd,
- 			  processData: false,  // 不处理数据
- 			  contentType: false ,  // 不设置内容类型
- 			  success:function(data){
- 				 alert(data.msg);
- 			  }
- 			});
+ 		if(yzRequired()){
+ 			
+			var tables=$(".abc");
+			
+				var arr=new Array();
+				for(var i=0;i<tables.length;i++){
+					try{
+						var columnName= $("#columnName"+i+"").val();
+						var javaType= $("#javaType"+i+"").val();
+						var javaColumnName= $("#javaColumnName"+i+"").val();
+						var isNullAble=$("#isNullAble"+i+"").val();
+						var lengthLimit=$("#lengthLimit"+i+"").val();
+						var lengthLimit_min=$("#lengthLimit_min"+i+"").val();
+						var lengthLimit_max=$("#lengthLimit_max"+i+"").val();
+						var lengthLimit_tip=$("#lengthLimit_tip"+i+"").val();
+						var remarks=$("#remarks"+i+"").val();
+						arr.push({
+							columnName:columnName,
+							javaType:javaType,
+							javaColumnName:javaColumnName,
+							isNullAble:isNullAble,
+							lengthLimit:lengthLimit,
+							lengthLimit_min:lengthLimit_min,
+							lengthLimit_tip:lengthLimit_tip,
+							lengthLimit_max:lengthLimit_max,
+							remarks:remarks
+						});
+					}catch(e){
+						console.log(e);
+					}
+				}
+				fd.append("tables",JSON.stringify(arr));
+				
+				fd.delete("shiro");
+				fd.delete("swagger2")
+				fd.append("shiro",$("#shiro").val());
+				fd.append("swagger2",$("#swagger2").val());
+				
+ 			 $.ajax({
+ 	 			  url: ctxPath+"generate",
+ 	 			  type: "POST",
+ 	 			  data: fd,
+ 	 			  processData: false,  // 不处理数据
+ 	 			  contentType: false ,  // 不设置内容类型
+ 	 			  success:function(data){
+ 	 				// alert(data.msg);
+ 	 			  }
+ 	 			}); 
+ 		}else{
+ 			alert("请输入必填项目: "+requiredInputName);
+ 		}
+ 		
  	}
+ 	
+ 	//验证所有比输入项目
+ 	function  yzRequired(){
+ 		
+ 		var reqs=$(".required");
+ 		if(reqs!=null){
+			for(var i=0;i<reqs.length;i++){
+				var value=$(reqs[i]).val();
+				if(value==null||value.trim()==''){
+					requiredInputName=$(reqs[i]).attr("name");
+						return false;					
+				}
+			}	
+ 		}
+ 		return true;
+ 	}
+ 	
+ 	
+ 	//加载表
+ 	function initSelect(){
+ 		$.get(ctxPath+"getTables",null,function(data){
+				if(data!=null){
+					for(var i=0;i<data.length;i++){
+						$("#selectTable").append("<option value=\""+data[i]+"\">"+data[i]+"</option>");						
+					}
+				}else{
+					alert("获取表失败");
+				}	
+ 		});
+ 	}
+ 	//加载表格详细信息
+ 	function getTableDetail(tableName){
+ 		
+ 		$.get(ctxPath+"getTableDetail?tableName="+tableName,null,function(data){
+				if(data!=null&&data!=""){
+					var trs=$(".abc");
+					for(i=0;i<trs.length;i++){
+						$(trs[i]).remove();
+					}
+					for(var i=0;i<data.length;i++){
+						var isNullAble =data[i].isNullAble;
+						var columnName=data[i].columnName;
+						var columnSize = data[i].columnSize;
+						var remarks=data[i].remarks;
+						var typeName =data[i].typeName;
+						
+						var stringFlag=false;
+						var dateFlag=false;
+						var intFlag=false;
+						var doubleFlag=false;
+						var errorType=false;
+						if(typeName.toLowerCase()=="varchar"){
+							stringFlag=true;
+						}else if(typeName.toLowerCase()=="date"||typeName.toLowerCase()=="datetime"){
+							dateFlag=true;
+						}else if(typeName.toLowerCase()=="int"||typeName.toLowerCase()=="char"){
+							intFlag=true;
+						}else if(typeName.toLowerCase()=="float"||typeName.toLowerCase()=="double"){
+							doubleFlag=true;
+						}else{
+							errorType=true;
+							stringFlag=true;//默认
+							console.log("类型暂不支持"+typeName);
+						}
+						var javaColumnName=tf(columnName);
+						var stringhtml=stringFlag==true?"selected=\"selected\"":"";
+						var inthtml=intFlag==true?"selected=\"selected\"":"";
+						var doublehtml=doubleFlag==true?"selected=\"selected\"":"";
+						var datehtml=dateFlag==true?"selected=\"selected\"":"";
+						
+						var lengthhtml=isNullAble=="NO"?"selected=\"selected\"":"";
+						
+						var html=new Array(
+								'<tr class="abc">'
+								,'<td><input class="required" readonly="readonly" id="columnName'+i+'" value="'+columnName+'"/></td>'
+								,'<td>'+typeName+'</td>'
+								,'<td><select class="required" id="javaType'+i+'">'
+									,'<option value="String" '+stringhtml+'>String</option>'
+									,'<option value="Integer" '+inthtml+'>Integer</option>'
+									,'<option value="Double"     ' +doublehtml +' >Double</option>'
+									,'<option value="Float"    '  +doublehtml+' >Float</option>'
+									,'<option value="Date"   '  +datehtml+' >Date</option>'
+								,'</select></td>'
+								,'<td><input class="required" id="javaColumnName'+i+'" value="'+javaColumnName+'"/></td>'
+								,'<td width="50px"><input style="width:50px;" readonly="readonly" class="required" id="columnSize'+i+'" value="'+columnSize+'"/></td>'
+								,'<td><input class="required" readonly="readonly" id="isNullAble'+i+'" value="'+isNullAble+'" /></td>'
+								
+								,'<td><select id="lengthLimit'+i+'"><option value="0"  '+lengthhtml+'>否</option><option value="1" '+lengthhtml+' >是</option> </select></td>'
+								
+								,'<td width="50px">min<input style="width:50px;"  id="lengthLimit_min'+i+'" value="1"/></td>'
+								,'<td width="50px">max<input style="width:50px;"  id="lengthLimit_max'+i+'" value="'+columnSize+'"/></td>'
+								,'<td >lengthTip(支持i18n{code})<input   id="lengthLimit_tip'+i+'" value="{obj.argsEr}"/></td>'
+								,'<td><input  id="remarks'+i+'" value="'+remarks+'"/></td>'
+								,'</tr>'	
+						).join("");
+						
+						$("#mytable").append(html)
+					}
+					
+				}else{
+					alert("获取表详细信息失败");
+				}
+ 		});
+ 	}
+ 	
+ 		//转驼峰
+ 		function tf(str){
+ 			 var strArr=str.split('_');
+ 		    for(var i=1;i<strArr.length;i++){
+ 		        strArr[i]=strArr[i].charAt(0).toUpperCase()+strArr[i].substring(1);
+ 		    }
+ 		    return strArr.join('');
+ 		}
+ 	
+ 	
  </script>
 </head>
 <body>
 
 
 <div style="width: 100%; margin:0 auto;" >
+	<br>数据库表选择
+<form id="form2">
+	
+	<table >
+		<tr>
+			<td>选择数据库表</td>
+			<td colspan="4"><select id="selectTable" name="selectTable">
+					<option value="">请选择</option>
+				</select>
+			</td>
+			<td>是否集成shiro</td>
+			<td>
+				<select name="shiro" id="shiro">
+					<option value="0" selected="selected">是</option>
+					<option value="1">否</option>
+				</select>
+			</td>
+			<td>是否集成swagger2</td>
+			<td>
+				<select name="swagger2" id="swagger2">
+					<option value="0" selected="selected">是</option>
+					<option value="1">否</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<br>
+	
+	<table id="mytable" border="0" cellspacing="0" cellpadding="5">
+		<tr>
+			<td>字段</td>
+			<td>字段类型</td>
+			<td>java类型</td>
+			<td>java属性名称(默认驼峰)</td>
+			<td width="50px">长度</td>
+			<td>是否允许为空</td>
+			<td colspan="4">是否长度限制</td>
+			<td>备注</td>
+		</tr>
+				
+	</table>
+	
+	
+	
+</form>
+
+
 <form id="myform" >
 
 
@@ -69,7 +289,7 @@
  	</tr>
  	<tr>
  		<td>jdbc.url：</td>
- 		<td><textarea type="text" rows="1" cols="50" name="jdbcUrl" id="jdbcUrl"></textarea></td>
+ 		<td><textarea type="text" rows="1" cols="50" name="jdbcUrl" id="jdbcUrl" readonly="readonly"></textarea></td>
  	</tr>
  	<tr>
  		<td>jdbc.username：</td>
@@ -133,7 +353,7 @@
  	
  	<tr>
  		<td>table要生成代码的表：</td>
- 		<td><textarea type="text" rows="2" cols="50" name="table" id="table"></textarea></td>
+ 		<td><textarea type="text" class="required" rows="2" cols="50" name="table" id="table"></textarea></td>
  	</tr>
  	<tr>
  		<td>版权声明（生成代码时附带版权信息）：</td>
