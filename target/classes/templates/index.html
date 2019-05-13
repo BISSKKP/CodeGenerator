@@ -46,6 +46,9 @@
 			$("#xmlTargetPackage").val(data["xml.targetPackage"]);
 			$("#exampleBaseExampleClass").val(data["example.baseExampleClass"]);
 			$("#mapperTargetPackage").val(data["mapper.targetPackage"]);
+			$("#controllerTargetPackage").val(data["controller.targetPackage"]);
+			$("#serviceTargetPackage").val(data["service.targetPackage"]);
+			$("#controllerRequestMapper").val(data["controller.requestMapper"]);
 			//$("#table").val(data["table"]);
 			$("#copyrightDesc").val(data["copyright.desc"]);
  		}catch(e){
@@ -57,7 +60,7 @@
  	
  	
  	function submit(){
- 		var fd=new FormData(document.querySelector("form"));
+ 		var fd=new FormData(document.getElementById("myform"));
  		if(yzRequired()){
  			
 			var tables=$(".abc");
@@ -92,10 +95,11 @@
 				fd.append("tables",JSON.stringify(arr));
 				
 				fd.delete("shiro");
+				fd.delete("table");
 				fd.delete("swagger2")
 				fd.append("shiro",$("#shiro").val());
 				fd.append("swagger2",$("#swagger2").val());
-				
+				fd.append("table",$("#table").val());
  			 $.ajax({
  	 			  url: ctxPath+"generate",
  	 			  type: "POST",
@@ -103,7 +107,7 @@
  	 			  processData: false,  // 不处理数据
  	 			  contentType: false ,  // 不设置内容类型
  	 			  success:function(data){
- 	 				// alert(data.msg);
+ 	 				 alert(data.msg);
  	 			  }
  	 			}); 
  		}else{
@@ -355,6 +359,20 @@
  		<td>table要生成代码的表：</td>
  		<td><textarea type="text" class="required" rows="2" cols="50" name="table" id="table"></textarea></td>
  	</tr>
+ 	
+ 	<tr>
+ 		<td>controller 生成包名：</td>
+ 		<td><textarea type="text" class="required" rows="2" cols="50" name="controllerTargetPackage" id="controllerTargetPackage"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>controller RequestMapperName：</td>
+ 		<td><textarea type="text"  rows="2" cols="50" name="controllerRequestMapper" id="controllerRequestMapper"></textarea></td>
+ 	</tr>
+ 	<tr>
+ 		<td>Service 生成路径：</td>
+ 		<td><textarea type="text" class="required" rows="2" cols="50" name="serviceTargetPackage" id="serviceTargetPackage"></textarea></td>
+ 	</tr>
+ 	
  	<tr>
  		<td>版权声明（生成代码时附带版权信息）：</td>
  		<td><textarea type="text" rows="2" cols="50" name="copyrightDesc" id="copyrightDesc" maxlength="100"></textarea></td>

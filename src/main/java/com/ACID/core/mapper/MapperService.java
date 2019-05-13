@@ -97,6 +97,13 @@ public interface MapperService<POJO> {
 	     * @param record
 	     * @return
 	     */
-	    int deleteBylogin(POJO record);
+	    int deleteBylogic(POJO record);
 	    
+
+	    /**
+	     * 额外查询list
+	     * @param record
+	     * @return
+	     */
+	    List<POJO> findList(POJO record);
 }

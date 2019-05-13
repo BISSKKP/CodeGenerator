@@ -23,7 +23,7 @@ public class GetTableInfo {
         	
             String tableName = rs.getString("TABLE_NAME");
            // System.out.println(rs.getString("REMARKS"));
-            System.out.println(tableName);
+            //System.out.println(tableName);
             list.add(tableName);
         }
         return list;
@@ -68,9 +68,9 @@ public class GetTableInfo {
     public DatabaseMetaData getDatabaseMetaData(){
     	 try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			String url = "jdbc:mysql://192.168.101.14:3306/acid?serverTimezone=GMT&amp&nullCatalogMeansCurrent=true";
-	         String user = "root";
-	         String password = "123456";
+			String url = PropertiesUtils.get("jdbc.url");
+	         String user =  PropertiesUtils.get("jdbc.userId");
+	         String password = PropertiesUtils.get("jdbc.password");
 	         Connection connection = DriverManager.getConnection(url, user, password);
 	         DatabaseMetaData databaseMetaData = connection.getMetaData();
 	    	
