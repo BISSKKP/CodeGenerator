@@ -199,6 +199,7 @@ public class MapperPlugin extends PluginAdapter {
 		sb.append(" select ");
 		int i = 0;
 		boolean hasDelFag = false;
+		boolean hasCreateDate=false;
 		String newline =StringUtils.getNewLine();
 		for (Table table : tables) {
 			if (i == 0) {
@@ -207,8 +208,11 @@ public class MapperPlugin extends PluginAdapter {
 				sb.append("      ,a." + table.getColumnName() + newline);
 			}
 			i++;
-			if (table.getColumnName().equals("del_flag")) {
+			if(table.getColumnName().equals("del_flag")) {
 				hasDelFag = true;
+			}
+			if(table.getColumnName().equals("create_date")){
+				hasCreateDate=true;
 			}
 		}
 
@@ -239,7 +243,19 @@ public class MapperPlugin extends PluginAdapter {
 			}
 		}
 
-		sb.append("  </where>");
+		sb.append("  </where> "+newline);
+		
+		//order by
+		sb.append(" 	<choose> "+newline);
+		sb.append("			<when test=\"orderByClause !=null and orderByClause !=''\">"+newline);
+		sb.append("       		order by ${orderByClause} "+newline);
+		sb.append(" 		</when>	"+newline);
+		if(hasCreateDate){
+			sb.append("		<otherwise> "+newline);
+			sb.append("				order by a.create_date desc "+newline);	
+			sb.append("		</otherwise> "+newline);
+		}
+		sb.append("	 </choose> "+newline);
 
 		select.addElement(new TextElement(sb.toString()));
 		XmlElement parentElement = document.getRootElement();

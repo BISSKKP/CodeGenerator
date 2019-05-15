@@ -27,11 +27,13 @@ public class CreateInterfaceImpl {
 		
 		impl.addAnnotation(CommonJavaType.annotation_Service_name);
 		
+		impl.addAnnotation("@Transactional(readOnly=true)");
+		
 		impl.addImportedType(CommonJavaType.annotation_Service);
 
 		FullyQualifiedJavaType service =CommonJavaType.getService(shortName);
 
-		
+		impl.addImportedType(CommonJavaType.transactional);
 		impl.addImportedType(CommonJavaType.page);
 		impl.addImportedType(CommonJavaType.getPojo(shortName));
 		impl.addImportedType(CommonJavaType.request);
@@ -42,6 +44,7 @@ public class CreateInterfaceImpl {
 		impl.addImportedType(CommonJavaType.getMapper(shortName));
 		impl.addImportedType(CommonJavaType.Autowired);
 		
+		impl.addImportedType(CommonJavaType.list);
 		
 		impl.addImportedType(CommonJavaType.getBaseService(shortName));
 		
@@ -66,14 +69,78 @@ public class CreateInterfaceImpl {
 
 		// 创建delete的实现方法
 		createDeleteImpl(shortName, service.getShortName(), impl);
+		
+		// 创建findList的实现方法
+		createfindList(shortName, service.getShortName(), impl);
+		
 
 		// 创建saveorUpdate方法
 		createSaveOrUpdate(shortName, service.getShortName(), impl);
+		
+		//创建save方法
+		createSave(shortName, service.getShortName(), impl);
+		
+		//创建delete 方法
+		createDelete(shortName, service.getShortName(), impl);
 
 		GeneratedJavaFile fimpl = new GeneratedJavaFile(impl, PropertiesUtils.get("targetProject"), javaFormatter);
 		mapperJavaFiles.add(fimpl);
 	}
 	
+	private static void createDelete(String shortName, String shortName2, TopLevelClass impl) {
+		Method method = new Method("deleteByLogic");
+
+		method.setVisibility(JavaVisibility.PUBLIC);
+		method.addAnnotation(CommonJavaType.override);
+		method.addParameter(CommonJavaType.getIdParameter());
+		method.addAnnotation("@Transactional(readOnly=false)");
+		
+		method.addBodyLine("  super.deleteByLogic( new "+StringUtils.toUp(shortName)+"(id)"+");");
+		
+		impl.addMethod(method);
+	}
+
+	/**
+	 * 保存方法
+	 * @param shortName
+	 * @param shortName2
+	 * @param impl
+	 */
+	private static void createSave(String shortName, String shortName2, TopLevelClass impl) {
+		Method method = new Method("save");
+
+		method.setVisibility(JavaVisibility.PUBLIC);
+		method.addAnnotation(CommonJavaType.override);
+		method.addParameter(CommonJavaType.getPojoParameter(shortName));
+		method.addAnnotation("@Transactional(readOnly=false)");
+		method.setReturnType(new FullyQualifiedJavaType("int"));
+		
+		method.addBodyLine(" return super.save("+StringUtils.tolow(shortName)+");");
+		
+		impl.addMethod(method);
+	}
+
+	/**
+	 * 创建findList方法
+	 * @param shortName
+	 * @param shortName2
+	 * @param impl
+	 */
+	private static void createfindList(String shortName, String shortName2, TopLevelClass impl) {
+		Method method = new Method("findList");
+
+		method.setVisibility(JavaVisibility.PUBLIC);
+		method.addAnnotation(CommonJavaType.override);
+		FullyQualifiedJavaType list=new FullyQualifiedJavaType("java.util.List");
+		list.addTypeArgument(CommonJavaType.getPojo(shortName));
+		method.setReturnType(list);
+		method.addParameter(CommonJavaType.getPojoParameter(shortName));
+		
+		method.addBodyLine(" return mapper.findList("+StringUtils.tolow(shortName)+");");
+		
+		impl.addMethod(method);
+	}
+
 	/**
 	 * 创建data实现方法
 	 */
@@ -170,7 +237,7 @@ public class CreateInterfaceImpl {
 		method.setVisibility(JavaVisibility.PUBLIC);
 		method.addAnnotation(CommonJavaType.override);
 
-
+		method.addAnnotation("@Transactional(readOnly=false)");
 		method.setReturnType(CommonJavaType.ajax);
 
 		method.addParameter(CommonJavaType.getIdParameter());
@@ -211,7 +278,7 @@ public class CreateInterfaceImpl {
 		method.addAnnotation("@Override");
 		
 
-		
+		method.addAnnotation("@Transactional(readOnly=false)");
 		FullyQualifiedJavaType ajax = new FullyQualifiedJavaType(PropertiesUtils.get("ajaxjson"));
 
 		method.setReturnType(ajax);

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.code.mapper.AmStaffMapper;
+import com.code.utils.AjaxJson;
 import com.code.utils.GetTableInfo;
 import com.code.utils.MapperPlugin;
 import com.code.utils.PropertiesUtils;
@@ -27,6 +28,17 @@ public class BaseController {
 
 	@Autowired
 	private GetTableInfo getTableInfo;
+	
+	@RequestMapping("/test")
+	@ResponseBody
+	public AjaxJson test(String data){
+		AjaxJson j=new AjaxJson();
+		
+		j.put("msg", data);
+		
+		return j;
+	}
+	
 
 	/**
 	 * 生成代码

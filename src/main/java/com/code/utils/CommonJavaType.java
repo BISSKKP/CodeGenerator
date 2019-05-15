@@ -11,6 +11,13 @@ public class CommonJavaType {
 	 */
 	public static FullyQualifiedJavaType request = new FullyQualifiedJavaType("javax.servlet.http.HttpServletRequest");
 	
+	
+	/**
+	 * 事务
+	 */
+	public static FullyQualifiedJavaType transactional = new FullyQualifiedJavaType("org.springframework.transaction.annotation.Transactional");
+	
+	
 	/**
 	 * request  name
 	 */
