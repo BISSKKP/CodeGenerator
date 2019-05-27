@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.code.mapper.AmStaffMapper;
 import com.code.utils.AjaxJson;
 import com.code.utils.GetTableInfo;
 import com.code.utils.MapperPlugin;
@@ -21,9 +20,6 @@ import com.code.utils.PropertiesUtils;
 
 @Controller
 public class BaseController {
-
-	@Autowired
-	private AmStaffMapper staffMaper;
 
 
 	@Autowired
