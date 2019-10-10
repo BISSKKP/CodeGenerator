@@ -27,3 +27,9 @@ target/classes/generatorConfig.xml
 target/classes/generatorConfig.xml
 target/classes/generatorConfig.xml
 target/classes/com/code/mapper/AmStaffMapper.xml
+target/classes/config.properties
+target/classes/application-dev.properties
+target/classes/config.properties
+target/classes/META-INF/maven/com.lqq/CodeGenerator/pom.properties
+target/classes/META-INF/maven/com.lqq/CodeGenerator/pom.properties
+target/classes/application-dev.properties
