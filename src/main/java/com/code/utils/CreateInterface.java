@@ -26,40 +26,51 @@ public class CreateInterface {
 
 		anInterface.setVisibility(JavaVisibility.PUBLIC);
 
-		// data接口
-		Method data = new Method("data");
-
-
-
 		anInterface.addImportedType(CommonJavaType.page);
 		anInterface.addImportedType(CommonJavaType.getPojo(shortName));
 		anInterface.addImportedType(CommonJavaType.request);
 		anInterface.addImportedType(CommonJavaType.ajax);
 		anInterface.addImportedType(CommonJavaType.list);
+		
+		// data接口
+		Method data = new Method("data");
+
+		
 
 		data.addParameter(CommonJavaType.getPojoParameter(shortName));
 		data.addParameter(CommonJavaType.getRequestParameter());
 
 		data.setReturnType(CommonJavaType.page);
 		data.addJavaDocLine("/**");
-		data.addJavaDocLine(" * @param " + StringUtils.tolow(shortName) );
-		data.addJavaDocLine(" * @param " + "request" );
+		data.addJavaDocLine(" * @param " + StringUtils.tolow(shortName));
+		data.addJavaDocLine(" * @param " + "request");
 		data.addJavaDocLine(" */");
-		
+
 		anInterface.addMethod(data);
 		
 		
+		//list 方法
+		Method getList = new Method("getList");
+		getList.addParameter(CommonJavaType.getPojoParameter(shortName));
+		getList.addParameter(CommonJavaType.getRequestParameter());
+		getList.setReturnType(CommonJavaType.ajax);
+		getList.addJavaDocLine("/**");
+		getList.addJavaDocLine(" * @param " + StringUtils.tolow(shortName));
+		getList.addJavaDocLine(" * @param " + "request");
+		getList.addJavaDocLine(" */");
+		anInterface.addMethod(getList);
+		
+
 		// get方法
 
-				Method get = new Method("get");
-				get.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
-				get.setReturnType(CommonJavaType.getPojo(shortName));
+		Method get = new Method("get");
+		get.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "id"));
+		get.setReturnType(CommonJavaType.getPojo(shortName));
 
-				get.addJavaDocLine("/**");
-				get.addJavaDocLine(" * @param " + "id" );
-				get.addJavaDocLine(" */");
-				anInterface.addMethod(get);
-		
+		get.addJavaDocLine("/**");
+		get.addJavaDocLine(" * @param " + "id");
+		get.addJavaDocLine(" */");
+		anInterface.addMethod(get);
 
 		// view方法
 		Method view = new Method("view");
@@ -67,48 +78,44 @@ public class CreateInterface {
 		view.setReturnType(CommonJavaType.ajax);
 		view.setVisibility(JavaVisibility.PUBLIC);
 		view.addJavaDocLine("/**");
-		view.addJavaDocLine(" * @param " + "id" );
+		view.addJavaDocLine(" * @param " + "id");
 		view.addJavaDocLine(" */");
 		anInterface.addMethod(view);
 
-		
-		//findList方法
-		Method findList=new Method("findList");
+		// findList方法
+		Method findList = new Method("findList");
 		findList.addParameter(CommonJavaType.getPojoParameter(shortName));
 		findList.setVisibility(JavaVisibility.PUBLIC);
-		FullyQualifiedJavaType list=new FullyQualifiedJavaType("java.util.List");
+		FullyQualifiedJavaType list = new FullyQualifiedJavaType("java.util.List");
 		list.addTypeArgument(CommonJavaType.getPojo(shortName));
-		
+
 		findList.setReturnType(list);
 		findList.addJavaDocLine("/**");
-		findList.addJavaDocLine(" * @param " + StringUtils.tolow(shortName) );
+		findList.addJavaDocLine(" * @param " + StringUtils.tolow(shortName));
 		findList.addJavaDocLine(" */");
 		anInterface.addMethod(findList);
-		
 
-		
 		// delete方法
 		Method delete = new Method("delete");
 		delete.addParameter(CommonJavaType.getIdParameter());
 		delete.setReturnType(CommonJavaType.ajax);
 
 		delete.addJavaDocLine("/**");
-		delete.addJavaDocLine(" * @param " + "id" );
+		delete.addJavaDocLine(" * @param " + "id");
 		delete.addJavaDocLine(" */");
 		delete.setVisibility(JavaVisibility.PUBLIC);
 		anInterface.addMethod(delete);
-		
-		//创建 deleteByLogic
-		
+
+		// 创建 deleteByLogic
+
 		Method deleteByLogic = new Method("deleteByLogic");
 		deleteByLogic.addParameter(CommonJavaType.getIdParameter());
 
 		deleteByLogic.addJavaDocLine("/**");
-		deleteByLogic.addJavaDocLine(" * @param " + "id" );
+		deleteByLogic.addJavaDocLine(" * @param " + "id");
 		deleteByLogic.addJavaDocLine(" */");
 		deleteByLogic.setVisibility(JavaVisibility.PUBLIC);
 		anInterface.addMethod(deleteByLogic);
-		
 
 		// saveorupdate
 		Method saveorupdate = new Method("saveOrUpdate");
@@ -117,27 +124,25 @@ public class CreateInterface {
 
 		saveorupdate.setVisibility(JavaVisibility.PUBLIC);
 		saveorupdate.addJavaDocLine("/**");
-		saveorupdate.addJavaDocLine(" * @param " +  StringUtils.tolow(shortName));
+		saveorupdate.addJavaDocLine(" * @param " + StringUtils.tolow(shortName));
 		saveorupdate.addJavaDocLine(" */");
 		anInterface.addMethod(saveorupdate);
-		
-		//save方法
-		Method save=new Method("save");
+
+		// save方法
+		Method save = new Method("save");
 		save.setVisibility(JavaVisibility.PUBLIC);
 		save.setReturnType(new FullyQualifiedJavaType("int"));
 		save.addParameter(CommonJavaType.getPojoParameter(shortName));
 		save.addJavaDocLine("/**");
 		save.addJavaDocLine(" *  save | update ");
-		save.addJavaDocLine(" * @param " +  StringUtils.tolow(shortName));
+		save.addJavaDocLine(" * @param " + StringUtils.tolow(shortName));
 		save.addJavaDocLine(" */");
 		anInterface.addMethod(save);
-		
 
-		GeneratedJavaFile fanInterface = new GeneratedJavaFile(anInterface, PropertiesUtils.get("targetProject"), javaFormatter);
+		GeneratedJavaFile fanInterface = new GeneratedJavaFile(anInterface, PropertiesUtils.get("targetProject"),
+				javaFormatter);
 		mapperJavaFiles.add(fanInterface);
-		
 
-		
 	}
-	
+
 }

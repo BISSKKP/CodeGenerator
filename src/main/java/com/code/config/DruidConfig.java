@@ -17,7 +17,8 @@ import com.alibaba.druid.support.http.WebStatFilter;
  */
 @Configuration
 public class DruidConfig {
-    @Bean
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@Bean
     public ServletRegistrationBean druidServlet() { // 主要实现WEB监控的配置处理
         ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(
                 new StatViewServlet(), "/druid/*"); // 现在要进行druid监控的配置处理操作
@@ -31,7 +32,8 @@ public class DruidConfig {
     }
     
     
-    @Bean
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Bean
     public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean() ;
         filterRegistrationBean.setFilter(new WebStatFilter());

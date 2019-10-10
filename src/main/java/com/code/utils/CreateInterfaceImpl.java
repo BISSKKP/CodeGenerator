@@ -38,13 +38,18 @@ public class CreateInterfaceImpl {
 		impl.addImportedType(CommonJavaType.getPojo(shortName));
 		impl.addImportedType(CommonJavaType.request);
 		impl.addImportedType(CommonJavaType.ajax);
-		impl.addImportedType(CommonJavaType.myLocaleResolver);
+//		impl.addImportedType(CommonJavaType.myLocaleResolver);
 		impl.addImportedType(CommonJavaType.stringUtils);
 		impl.addImportedType(service);
 		impl.addImportedType(CommonJavaType.getMapper(shortName));
 		impl.addImportedType(CommonJavaType.Autowired);
 		
 		impl.addImportedType(CommonJavaType.list);
+		
+		impl.addImportedType(CommonJavaType.logger);
+		impl.addImportedType(CommonJavaType.loggerFactory);
+		
+		impl.addImportedType(CommonJavaType.webErrorNotice);
 		
 		impl.addImportedType(CommonJavaType.getBaseService(shortName));
 		
@@ -53,13 +58,16 @@ public class CreateInterfaceImpl {
 		// 继承
 		impl.addSuperInterface(service);
 
-		Field myesolver = new Field(CommonJavaType.myLocaleResolver_name, CommonJavaType.myLocaleResolver);
-		myesolver.setVisibility(JavaVisibility.PRIVATE);
-		myesolver.addAnnotation(CommonJavaType.Autowired_name);
-		impl.addField(myesolver);
+		Field logger = new Field(CommonJavaType.logger_name, CommonJavaType.logger);
+		logger.setInitializationString("LoggerFactory.getLogger(getClass())");
+		impl.addField(logger);
 
 		// 暂停
 		createdataImpl(shortName, service.getShortName(), impl);
+		
+		//创建getList 的实现方法
+		createGetListImpl(shortName, service.getShortName(), impl);
+		
 
 		// 创建view 的实现方法
 		createViewImpl(shortName, service.getShortName(), impl);
@@ -87,6 +95,29 @@ public class CreateInterfaceImpl {
 		mapperJavaFiles.add(fimpl);
 	}
 	
+	private static void createGetListImpl(String shortName, String shortName2, TopLevelClass impl) {
+		Method method = new Method("getList");
+
+		method.setVisibility(JavaVisibility.PUBLIC);
+		method.addAnnotation(CommonJavaType.override);
+
+		method.setReturnType(CommonJavaType.ajax);
+
+		method.addParameter(CommonJavaType.getPojoParameter(shortName));
+		
+		method.addParameter(CommonJavaType.getRequestParameter());
+
+		
+		
+		method.addBodyLine("AjaxJson j=new AjaxJson();");
+		method.addBodyLine("j.setSuccess(true);");
+		method.addBodyLine("j.put( \"pageInfo\", super.findPage(" +
+		StringUtils.tolow(shortName) + ",request" + "));");
+		method.addBodyLine("return j;");
+		impl.addMethod(method);
+		
+	}
+
 	private static void createDelete(String shortName, String shortName2, TopLevelClass impl) {
 		Method method = new Method("deleteByLogic");
 
@@ -187,14 +218,14 @@ public class CreateInterfaceImpl {
 		method.addBodyLine("if(StringUtils.isNotBlank(id)){");
 		method.addBodyLine("j.setSuccess(true);");
 		method.addBodyLine("j.put(\"" + StringUtils.tolow(shortName) + "\", get(id));");
-		method.addBodyLine("j.setMsg(\"OK\");");
+		method.addBodyLine("j.setMsg(WebErrorNotice.SYS_OK);");
 		method.addBodyLine("}else{");
-		method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"obj.notFound\"));");
+		method.addBodyLine("j.setMsg(WebErrorNotice.OBJ_ArgsErr);");
 		method.addBodyLine("}");
 		method.addBodyLine("} catch (Exception e) {");
 
-		method.addBodyLine("e.printStackTrace();");
-		method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"sys.err.waiting\"));");
+		method.addBodyLine("logger.error(WebErrorNotice.SYS_ErrWait.getStringCode(), e);");
+		method.addBodyLine("j.setMsg(WebErrorNotice.SYS_ErrWait);");
 		method.addBodyLine("}");
 		method.addBodyLine("return j;");
 		impl.addMethod(method);
@@ -251,14 +282,14 @@ public class CreateInterfaceImpl {
 
 		method.addBodyLine("deleteByLogic(new " + StringUtils.toUp(shortName) + "(id));");
 
-		method.addBodyLine("j.setMsg(\"OK\");");
+		method.addBodyLine("j.setMsg(WebErrorNotice.SYS_OK);");
 		method.addBodyLine("}else{");
-		method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"obj.notFound\"));");
+		method.addBodyLine("j.setMsg(WebErrorNotice.OBJ_ArgsErr);");
 		method.addBodyLine("}");
 		method.addBodyLine("} catch (Exception e) {");
 
-		method.addBodyLine("e.printStackTrace();");
-		method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"sys.err.waiting\"));");
+		method.addBodyLine("logger.error(WebErrorNotice.SYS_ErrWait.getStringCode(), e);");
+		method.addBodyLine("j.setMsg(WebErrorNotice.SYS_ErrWait);");
 		method.addBodyLine("}");
 		method.addBodyLine("return j;");
 		impl.addMethod(method);
@@ -299,13 +330,13 @@ public class CreateInterfaceImpl {
 		
 		
 		method.addBodyLine("j.setSuccess(true);");
-		method.addBodyLine("j.setMsg(\"OK\");");
+		method.addBodyLine("j.setMsg(WebErrorNotice.SYS_OK);");
 		
 		
 		method.addBodyLine("} catch (Exception e) {");
 
-		method.addBodyLine("e.printStackTrace();");
-		method.addBodyLine("j.setMsg(myLocaleResolver.getMessage(\"sys.err.waiting\"));");
+		method.addBodyLine("logger.error(WebErrorNotice.SYS_ErrWait.getStringCode(), e);");
+		method.addBodyLine("j.setMsg(WebErrorNotice.SYS_ErrWait);");
 		method.addBodyLine("}");
 		method.addBodyLine("return j;");
 		

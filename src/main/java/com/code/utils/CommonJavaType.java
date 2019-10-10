@@ -178,9 +178,31 @@ public class CommonJavaType {
 	 */
 	public static FullyQualifiedJavaType date= new FullyQualifiedJavaType("java.util.Date");
 	
+	/**
+	 * slf4j   Logger
+	 */
+	public static FullyQualifiedJavaType logger= new FullyQualifiedJavaType("org.slf4j.Logger");
 	
+	/**
+	 * slf4j   Logger 属性名
+	 */
+	public static String logger_name="logger";
+	
+	/**
+	 * String
+	 */
 	public static FullyQualifiedJavaType String= new FullyQualifiedJavaType("String");
 	
+	
+	/**
+	 * slf4j   LoggerFactory
+	 */
+	public static FullyQualifiedJavaType loggerFactory= new FullyQualifiedJavaType("org.slf4j.LoggerFactory");
+	
+	/**
+	 * 错误
+	 */
+	public static FullyQualifiedJavaType webErrorNotice= new FullyQualifiedJavaType("com.code.utils.WebErrorNotice");
 	
 	/**
 	 * 获取实体类
