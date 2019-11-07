@@ -42,7 +42,7 @@ public class CreateInterfaceImpl {
 		impl.addImportedType(CommonJavaType.stringUtils);
 		impl.addImportedType(service);
 		impl.addImportedType(CommonJavaType.getMapper(shortName));
-		impl.addImportedType(CommonJavaType.Autowired);
+//		impl.addImportedType(CommonJavaType.Autowired);
 		
 		impl.addImportedType(CommonJavaType.list);
 		

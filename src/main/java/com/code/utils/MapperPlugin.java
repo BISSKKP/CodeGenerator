@@ -173,7 +173,13 @@ public class MapperPlugin extends PluginAdapter {
 		// "java.lang.Integer"));//mybatis insert ,update 没有返回值
 		update.addAttribute(new Attribute("parameterType", introspectedTable.getBaseRecordType()));
 		update.addElement(new TextElement(" update  " + introspectedTable.getFullyQualifiedTableNameAtRuntime()
-				+ " set del_flag=#{del_delFlag},update_date = now(),update_by=#{updateBy} where id =#{id}"));
+				+ "  <set>"+
+     	"del_flag=#{del_delFlag},"+
+     	"update_date = now(),"+
+     	"<if test=\"updateBy != null\">"+
+     		"update_by=#{updateBy},"+
+     	"</if>"+
+     "</set>"));
 		XmlElement parentElement = document.getRootElement();
 		parentElement.addElement(update);
 	}
