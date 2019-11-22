@@ -179,7 +179,7 @@ public class MapperPlugin extends PluginAdapter {
      	"<if test=\"updateBy != null\">"+
      		"update_by=#{updateBy},"+
      	"</if>"+
-     "</set>"));
+     "</set>   where id= #{id} "));
 		XmlElement parentElement = document.getRootElement();
 		parentElement.addElement(update);
 	}
