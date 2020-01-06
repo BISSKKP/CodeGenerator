@@ -121,10 +121,22 @@ public class CommonJavaType {
 	 */
 	public static FullyQualifiedJavaType validated_length=new FullyQualifiedJavaType("org.hibernate.validator.constraints.Length");
 	
+	
 	/**
-	 * 验证 null
+	 * 验证字符串比输入
 	 */
-	public static FullyQualifiedJavaType validated_Null=new FullyQualifiedJavaType("javax.validation.constraints.Null");
+	public static FullyQualifiedJavaType validated_String_NotBlank=new FullyQualifiedJavaType("javax.validation.constraints.NotBlank");
+	
+	/**
+	 * 验证 int double 基本类型
+	 */
+	public static FullyQualifiedJavaType validated_Integer_NotNull=new FullyQualifiedJavaType("javax.validation.constraints.NotNull");
+	
+	/**
+	 * 验证集合集合
+	 */
+	public static FullyQualifiedJavaType validated_NotEmpty=new FullyQualifiedJavaType("javax.validation.constraints.NotEmpty");
+	
 	
 	/**
 	 * date格式

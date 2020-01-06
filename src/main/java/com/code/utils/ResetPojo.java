@@ -42,7 +42,8 @@ public class ResetPojo {
 		List<Table> tables = JsonUtils.jsonToList(tables_json, Table.class);
 		boolean hasId = false;
 
-		boolean validImportFlag_null = false;
+		boolean validImportFlag_null = false;//
+		boolean intvalidflag=false;	//int
 		boolean validImportFlag_length = false;
 		boolean hasDate = false;
 		for (Table table : tables) {
@@ -84,16 +85,25 @@ public class ResetPojo {
 
 					if ("Integer".equals(table.getJavaType()) || "Double".equals(table.getJavaType())
 							|| "Float".equals(table.getJavaType())) {
-						// field.addAnnotation("@NotEmpty(message=\""+table.getLengthLimit_tip()
-						// +"\")");
+						
+						if(table.getIsNullAble().toLowerCase().equals("no")){
+							 field.addAnnotation("@NotNull(message=\""+table.getLengthLimit_tip()
+							 +"\")");
+							 validImportFlag_null=true;
+						}
+						
+						 
 					} else if (isDate) {
 
-						getmethod.addAnnotation("@Null(message=\"" + table.getLengthLimit_tip() + "\")");
+						getmethod.addAnnotation("@NotNull(message=\"" + table.getLengthLimit_tip() + "\")");
 						validImportFlag_null = true;
 					} else {
 						// 需要验证参数
 						getmethod.addAnnotation("@Length(min=" + table.getLengthLimit_min() + ", max="
 								+ table.getLengthLimit_max() + ", message=\"" + table.getLengthLimit_tip() + "\")");
+						
+						getmethod.addAnnotation("@NotBlank(  message=\"" + table.getLengthLimit_tip() + "\")");
+						
 						validImportFlag_length = true;
 					}
 				}
@@ -113,13 +123,17 @@ public class ResetPojo {
 		// 导入验证注解包
 		if (validImportFlag_length) {
 			newPojo.addImportedType(CommonJavaType.validated_length);
+			newPojo.addImportedType(CommonJavaType.validated_String_NotBlank);
 		}
+		
+		
+		
 		if (validImportFlag_null) {
-			newPojo.addImportedType(CommonJavaType.validated_Null);
+			newPojo.addImportedType(CommonJavaType.validated_Integer_NotNull);
 		}
+		
 		if (hasDate) {
 			newPojo.addImportedType(CommonJavaType.date_JsonFormat);
-
 		}
 
 		// 新增默认构造器
